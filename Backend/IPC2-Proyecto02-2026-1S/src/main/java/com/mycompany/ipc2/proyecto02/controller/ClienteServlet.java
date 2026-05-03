@@ -5,6 +5,7 @@
 package com.mycompany.ipc2.proyecto02.controller;
 
 import com.google.gson.Gson;
+import com.mycompany.ipc2.proyecto02.dao.impl.ClienteDaoImpl;
 import com.mycompany.ipc2.proyecto02.dto.CompletarPerfilClienteDTO;
 import com.mycompany.ipc2.proyecto02.dto.RecargaDTO;
 import com.mycompany.ipc2.proyecto02.model.Cliente;
@@ -53,13 +54,54 @@ public class ClienteServlet extends HttpServlet {
     }
 
     private ClienteService clienteService;
+    private ClienteDaoImpl clienteDaoImpl;
     private Gson gson;
 
     @Override
     public void init() throws ServletException {
         this.clienteService = new ClienteServiceImpl();
+        this.clienteDaoImpl = new ClienteDaoImpl();
         this.gson = new Gson();
     }
+    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        String pathInfo = req.getPathInfo();
+
+        // Creamos una sub-ruta para verificar si existe
+        if (pathInfo != null && pathInfo.contains("/perfil/existe")) {
+            verificarSiExistePerfil(req, resp);
+        } else {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write("{\"error\": \"Ruta de cliente GET no encontrada.\"}");
+        }
+    }
+
+    private void verificarSiExistePerfil(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            Integer idUsuario = (Integer) req.getAttribute("idUsuario");
+            
+         
+            boolean existe = clienteDaoImpl.existePerfil(idUsuario);
+
+            if (existe) {
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write("{\"existe\": true}");
+            } else {
+                // Si no existe, mandamos error 404
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("{\"error\": \"El perfil del cliente aún no ha sido completado.\"}");
+            }
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+    
+    
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

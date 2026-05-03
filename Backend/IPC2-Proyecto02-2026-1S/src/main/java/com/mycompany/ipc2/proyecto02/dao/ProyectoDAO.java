@@ -10,7 +10,13 @@ package com.mycompany.ipc2.proyecto02.dao;
  */
 import com.mycompany.ipc2.proyecto02.model.Proyecto;
 import java.util.List;
+import java.util.Map;
 
 public interface ProyectoDAO extends CrudDAO<Proyecto, Integer> {
     Proyecto publicarProyectoConHabilidades(Proyecto proyecto, List<Integer> habilidades);
+    List<Map<String, Object>> obtenerPropuestasPorProyecto(int idProyecto);
+    void aceptarPropuesta(int idProyecto, int idPropuesta, int idCliente) throws Exception;
+    
+    void rechazarPropuesta(int idPropuesta) throws Exception;
+    
 }

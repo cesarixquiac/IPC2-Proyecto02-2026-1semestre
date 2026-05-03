@@ -11,6 +11,8 @@ import com.mycompany.ipc2.proyecto02.dto.PublicarProyectoDTO;
 import com.mycompany.ipc2.proyecto02.model.Proyecto;
 import com.mycompany.ipc2.proyecto02.service.ProyectoService;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -55,6 +57,24 @@ public class ProyectoServiceImpl implements ProyectoService {
         }
 
         return proyectoPublicado;
+    }
+    
+    
+    @Override
+    public List<Map<String, Object>> obtenerPropuestasPorProyecto(int idProyecto) {
+        return this.proyectoDao.obtenerPropuestasPorProyecto(idProyecto);
+    }
+
+    @Override
+    public void aceptarPropuesta(int idProyecto, int idPropuesta, int idCliente) throws Exception {
+        // Usamos 'proyectoDao' que es tu variable declarada arriba
+        this.proyectoDao.aceptarPropuesta(idProyecto, idPropuesta, idCliente);
+    }
+
+    @Override
+    public void rechazarPropuesta(int idPropuesta) throws Exception {
+        // Usamos 'proyectoDao' en minúsculas y sin el "Impl" extra
+        this.proyectoDao.rechazarPropuesta(idPropuesta);
     }
 }
 

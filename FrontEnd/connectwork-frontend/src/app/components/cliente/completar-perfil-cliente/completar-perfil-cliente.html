@@ -1,0 +1,36 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+          <h4 class="mb-0">Completa tu Perfil de Cliente</h4>
+          <p class="mb-0 small">Necesitamos estos datos antes de que puedas publicar proyectos</p>
+        </div>
+        <div class="card-body p-4">
+          @if (mensajeError) {
+            <div class="alert alert-danger fw-bold text-center">{{ mensajeError }}</div>
+          }
+
+          <form (ngSubmit)="guardarPerfil()">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Descripción de la Empresa *</label>
+              <textarea class="form-control" name="descripcionEmpresa" [(ngModel)]="perfil.descripcionEmpresa" rows="3" placeholder="¿A qué se dedica tu empresa?" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Sector o Industria *</label>
+              <input type="text" class="form-control" name="sectorIndustria" [(ngModel)]="perfil.sectorIndustria" placeholder="Ej: Tecnología, Salud, Comercio..." required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Sitio Web (Opcional)</label>
+              <input type="url" class="form-control" name="sitioWeb" [(ngModel)]="perfil.sitioWeb" placeholder="www.tuempresa.com">
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-bold fs-5">Guardar y Continuar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

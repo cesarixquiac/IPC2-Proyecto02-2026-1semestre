@@ -1,0 +1,85 @@
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7"> <!-- Lo hicimos un poco más ancho -->
+      <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-primary text-white text-center py-4">
+          <h3 class="mb-0 fw-bold">Crear Cuenta</h3>
+          <p class="mb-0">Únete a ConnectWork</p>
+        </div>
+        
+        <div class="card-body p-4">
+          <div *ngIf="mensajeExito" class="alert alert-success text-center fw-bold">{{ mensajeExito }}</div>
+          <div *ngIf="mensajeError" class="alert alert-danger text-center fw-bold">{{ mensajeError }}</div>
+
+          <form (ngSubmit)="registrar()">
+            
+            <!-- Fila 1 -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Nombre Completo *</label>
+                <input type="text" class="form-control" name="nombreCompleto" [(ngModel)]="nuevoUsuario.nombreCompleto" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Nombre de Usuario *</label>
+                <input type="text" class="form-control" name="username" [(ngModel)]="nuevoUsuario.username" required>
+              </div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Correo Electrónico *</label>
+                <input type="email" class="form-control" name="email" [(ngModel)]="nuevoUsuario.email" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Contraseña *</label>
+                <input type="password" class="form-control" name="password" [(ngModel)]="nuevoUsuario.password" required>
+              </div>
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">CUI (DPI) *</label>
+                <input type="text" class="form-control" name="cui" [(ngModel)]="nuevoUsuario.cui" maxlength="13" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Fecha de Nacimiento *</label>
+                <input type="date" class="form-control" name="fechaNacimiento" [(ngModel)]="nuevoUsuario.fechaNacimiento" required>
+              </div>
+            </div>
+
+            <!-- Fila 4 -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Teléfono</label>
+                <input type="text" class="form-control" name="telefono" [(ngModel)]="nuevoUsuario.telefono">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Dirección</label>
+                <input type="text" class="form-control" name="direccion" [(ngModel)]="nuevoUsuario.direccion">
+              </div>
+            </div>
+
+            <!-- Fila 5 -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">¿Qué deseas hacer? *</label>
+              <select class="form-select" name="rol" [(ngModel)]="nuevoUsuario.rol" required>
+                <option value="" disabled selected>Selecciona tu rol...</option>
+                <option value="CLIENTE">Quiero contratar (Cliente)</option>
+                <option value="FREELANCER">Quiero trabajar (Freelancer)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-bold fs-5 mb-3">Registrarme</button>
+            
+            <div class="text-center">
+              <span class="text-muted">¿Ya tienes cuenta?</span>
+              <a routerLink="/login" class="text-primary fw-bold text-decoration-none ms-1">Inicia sesión aquí</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -10,7 +10,12 @@ package com.mycompany.ipc2.proyecto02.service;
  */
 import com.mycompany.ipc2.proyecto02.dto.PublicarProyectoDTO;
 import com.mycompany.ipc2.proyecto02.model.Proyecto;
+import java.util.List;
+import java.util.Map;
 
 public interface ProyectoService {
     Proyecto publicarProyecto(Integer idCliente, PublicarProyectoDTO dto) throws Exception;
+    List<Map<String, Object>> obtenerPropuestasPorProyecto(int idProyecto);
+    void aceptarPropuesta(int idProyecto, int idPropuesta, int idCliente) throws Exception;
+    void rechazarPropuesta(int idPropuesta) throws Exception;
 }
