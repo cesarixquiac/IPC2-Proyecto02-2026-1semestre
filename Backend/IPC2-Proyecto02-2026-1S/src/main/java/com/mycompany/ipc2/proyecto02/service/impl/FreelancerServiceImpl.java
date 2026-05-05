@@ -4,11 +4,17 @@
  */
 package com.mycompany.ipc2.proyecto02.service.impl;
 
+import com.mycompany.ipc2.proyecto02.config.ConexionDB;
 import com.mycompany.ipc2.proyecto02.dao.FreelancerDao;
 import com.mycompany.ipc2.proyecto02.dao.impl.FreelancerDaoImpl;
 import com.mycompany.ipc2.proyecto02.dto.CompletarPerfilFreelancerDTO;
 import com.mycompany.ipc2.proyecto02.model.Freelancer;
 import com.mycompany.ipc2.proyecto02.service.FreelancerService;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -54,4 +60,37 @@ public class FreelancerServiceImpl implements FreelancerService {
 
         return perfilCreado;
     }
+    
+    @Override
+    public boolean tienePerfilCompleto(int idUsuario) throws Exception {
+        // Aquí hacemos el puente: el Service simplemente le pasa la pelota al DAO
+        return freelancerDao.tienePerfilCompleto(idUsuario);
+    }
+    
+    @Override
+    public double obtenerSaldo(int idFreelancer) throws Exception {
+        double saldo = 0.00;
+        // Seleccionamos la columna de tu base de datos (verifica si se llama saldo o saldo_acumulado)
+        String sql = "SELECT saldo_acumulado FROM freelancer WHERE id_freelancer = ?";
+        
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idFreelancer);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    saldo = rs.getDouble("saldo_acumulado");
+                }
+            }
+        }
+        return saldo;
+    }
+    
+    @Override
+    public List<Map<String, Object>> obtenerHistorialGanancias(int idFreelancer) throws Exception {
+        // El puente: le decimos al DAO que haga la consulta SQL y nos devuelva la lista
+        return freelancerDao.obtenerHistorialGanancias(idFreelancer);
+    }
+    
 }

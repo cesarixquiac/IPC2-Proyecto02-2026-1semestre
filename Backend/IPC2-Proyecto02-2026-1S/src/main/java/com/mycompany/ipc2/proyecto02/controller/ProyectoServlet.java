@@ -47,6 +47,7 @@ public class ProyectoServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         this.proyectoService = new ProyectoServiceImpl();
+        
 
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new JsonSerializer<LocalDate>() {
@@ -99,7 +100,7 @@ public class ProyectoServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
+   @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -107,56 +108,30 @@ public class ProyectoServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // Verificamos si la ruta pedida es "/disponibles"
         String pathInfo = request.getPathInfo();
 
         if (pathInfo != null && pathInfo.equals("/disponibles")) {
-
-            // Traemos solo los proyectos que estén disponibles (Asumiendo que el estado inicial es 'ABIERTO' o 'ACTIVO')
-            String sql = "SELECT id_proyecto, titulo, descripcion, presupuesto_maximo, fecha_limite "
-                    + "FROM proyecto WHERE estado = 'ABIERTO' ORDER BY fecha_publicacion DESC";
-
-            List<Map<String, Object>> proyectos = new ArrayList<>();
-
-            try (Connection conn = ConexionDB.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-                while (rs.next()) {
-                    Map<String, Object> p = new HashMap<>();
-                    p.put("id", rs.getInt("id_proyecto"));
-                    p.put("titulo", rs.getString("titulo"));
-                    p.put("descripcion", rs.getString("descripcion"));
-                    // Nombres exactos que espera el frontend en Angular:
-                    p.put("presupuestoMaximo", rs.getDouble("presupuesto_maximo"));
-                    p.put("fechaLimite", rs.getString("fecha_limite"));
-
-                    proyectos.add(p);
-                }
-
+            try {
+                // Obtenemos el ID del freelancer que está logueado
+                Integer idFreelancer = (Integer) request.getAttribute("idUsuario"); 
+                
+                // Llamamos al servicio (que llama al DAO con la consulta avanzada)
+                List<Map<String, Object>> proyectos = proyectoService.obtenerProyectosDisponibles(idFreelancer);
+                
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(new Gson().toJson(proyectos));
-
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Error al obtener proyectos: " + e.getMessage());
-                out.print(new Gson().toJson(errorResponse));
-            } finally {
-                out.flush();
+                out.print("{\"error\": \"Error al obtener proyectos: " + e.getMessage() + "\"}");
             }
-
         } else if (pathInfo != null && pathInfo.equals("/mis-proyectos")) {
-
-            // Sacamos el ID del cliente desde el Token JWT
+            // ... (Tu código de /mis-proyectos se queda igual) ...
             Integer idCliente = (Integer) request.getAttribute("idUsuario");
-
             String sql = "SELECT id_proyecto, titulo, descripcion, presupuesto_maximo, estado, fecha_limite "
                     + "FROM proyecto WHERE id_cliente = ? ORDER BY fecha_publicacion DESC";
-
             List<Map<String, Object>> misProyectos = new ArrayList<>();
-
             try (Connection conn = ConexionDB.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
                 ps.setInt(1, idCliente);
-
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         Map<String, Object> p = new HashMap<>();
@@ -170,39 +145,56 @@ public class ProyectoServlet extends HttpServlet {
                     }
                 }
                 out.print(new Gson().toJson(misProyectos));
-
             } catch (SQLException e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Error al obtener los proyectos: " + e.getMessage() + "\"}");
-            } finally {
-                out.flush();
             }
+
         } else if (pathInfo != null && pathInfo.matches("/\\d+/propuestas")) {
+         
             try {
-                // Extraemos el número de la ruta (ej: de "/5/propuestas" sacamos el "5")
                 String[] partes = pathInfo.split("/");
                 int idProyecto = Integer.parseInt(partes[1]);
-
-                // Aquí usamos el servicio que acabas de crear
                 List<Map<String, Object>> propuestas = proyectoService.obtenerPropuestasPorProyecto(idProyecto);
-
                 out.print(new Gson().toJson(propuestas));
-
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.print("{\"error\": \"ID de proyecto inválido.\"}");
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Error al obtener propuestas: " + e.getMessage() + "\"}");
-            } finally {
-                out.flush();
             }
-        } else {
+
+        } 
+        else if (pathInfo != null && pathInfo.matches("^/\\d+/entregas$")) {
+            try {
+                int idProyecto = Integer.parseInt(pathInfo.split("/")[1]);
+                Map<String, Object> detalle = proyectoService.obtenerDetalleEntrega(idProyecto);
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(detalle));
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+            
+        } else if (pathInfo != null && pathInfo.equals("/mis-contratos")) {
+            try {
+                Integer idFreelancer = (Integer) request.getAttribute("idUsuario");
+                List<Map<String, Object>> contratos = proyectoService.obtenerContratosActivosFreelancer(idFreelancer);
+                
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(contratos));
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+        else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             out.print("[]");
-            out.flush();
         }
-
+        
+        out.flush();
     }
 
     /**
@@ -220,15 +212,16 @@ public class ProyectoServlet extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         String pathInfo = req.getPathInfo();
+        // Separamos la ruta para poder evaluar partes numéricas
+        String[] parts = pathInfo != null ? pathInfo.split("/") : new String[0];
 
-        
         if (pathInfo != null && pathInfo.contains("/publicar")) {
             manejarPublicacion(req, resp);
+            
         } else if (pathInfo != null && pathInfo.equals("/propuestas/aceptar")) {
             try {
                 Integer idCliente = (Integer) req.getAttribute("idUsuario");
                 Map<String, Object> datos = new Gson().fromJson(req.getReader(), Map.class);
-
                 int idProyecto = ((Number) datos.get("idProyecto")).intValue();
                 int idPropuesta = ((Number) datos.get("idPropuesta")).intValue();
 
@@ -236,12 +229,12 @@ public class ProyectoServlet extends HttpServlet {
 
                 resp.setStatus(HttpServletResponse.SC_OK);
                 out.print("{\"mensaje\": \"Propuesta aceptada con éxito.\"}");
-
             } catch (Exception e) {
                 e.printStackTrace();
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.print("{\"error\": \"" + e.getMessage() + "\"}");
             }
+            
         } else if (pathInfo != null && pathInfo.equals("/propuestas/rechazar")) {
             try {
                 Map<String, Object> datos = new Gson().fromJson(req.getReader(), Map.class);
@@ -255,7 +248,99 @@ public class ProyectoServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.print("{\"error\": \"" + e.getMessage() + "\"}");
             }
-        } // El "No encontrado" solo si no entró en ninguna de las anteriores
+            
+        } // RUTAS DE ENTREGAS UNIFICADAS AQUÍ:
+        else if (parts.length == 4 && parts[2].equals("entregas")) {
+            int idProyecto = Integer.parseInt(parts[1]);
+            String accion = parts[3];
+
+            try {
+                if (accion.equals("aprobar")) {
+                    // 1. Leemos el JSON que nos manda Angular con las estrellas y comentario
+                    Map<String, Object> body = new Gson().fromJson(req.getReader(), Map.class);
+                    
+                    // 2. Extraemos los valores (con cuidado de parsear el número correctamente)
+                    int estrellas = 5; // Valor por defecto por si acaso
+                    if (body.get("estrellas") != null) {
+                        estrellas = ((Number) body.get("estrellas")).intValue();
+                    }
+                    
+                    String comentario = "";
+                    if (body.get("comentario") != null) {
+                        comentario = (String) body.get("comentario");
+                    }
+
+                    // 3. Llamamos al servicio con los nuevos datos
+                    proyectoService.aprobarEntrega(idProyecto, estrellas, comentario);
+                    
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                    out.print("{\"mensaje\": \"Entrega aprobada exitosamente. Se procesó el pago y la calificación.\"}");
+
+                } else if (accion.equals("rechazar")) {
+                    Map<String, String> body = new Gson().fromJson(req.getReader(), Map.class);
+                    String motivo = body.get("motivo");
+
+                    proyectoService.rechazarEntrega(idProyecto, motivo);
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                    out.print("{\"mensaje\": \"Entrega rechazada. Se notificará al freelancer.\"}");
+                }
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+            
+        } // RUTA DE CANCELAR UNIFICADA AQUÍ:
+        else if (parts.length == 3 && parts[2].equals("cancelar")) {
+            try {
+                int idProyecto = Integer.parseInt(parts[1]);
+                Integer idCliente = (Integer) req.getAttribute("idUsuario");
+
+                Map<String, String> body = new Gson().fromJson(req.getReader(), Map.class);
+                String motivo = body.get("motivo");
+
+                proyectoService.cancelarContrato(idProyecto, motivo, idCliente);
+
+                // ¡Corregido! Era resp.setStatus, no req.setStatus
+                resp.setStatus(HttpServletResponse.SC_OK); 
+                out.print("{\"mensaje\": \"Contrato cancelado y fondos devueltos exitosamente.\"}");
+            } catch (Exception e) {
+                // ¡Corregido! Era resp.setStatus, no req.setStatus
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+            
+        }else if (parts.length == 3 && parts[2].equals("editar")) {
+            try {
+                int idProyecto = Integer.parseInt(parts[1]);
+                Map<String, Object> body = new Gson().fromJson(req.getReader(), Map.class);
+                
+                String titulo = (String) body.get("titulo");
+                String descripcion = (String) body.get("descripcion");
+                double presupuesto = ((Number) body.get("presupuestoMaximo")).doubleValue();
+                String fechaLimite = (String) body.get("fechaLimite");
+
+                proyectoService.editarProyectoAbierto(idProyecto, titulo, descripcion, presupuesto, fechaLimite);
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print("{\"mensaje\": \"Proyecto editado exitosamente.\"}");
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        } 
+        // Ruta: /api/proyectos/{id}/eliminar
+        else if (parts.length == 3 && parts[2].equals("eliminar")) {
+            try {
+                int idProyecto = Integer.parseInt(parts[1]);
+                proyectoService.eliminarProyectoAbierto(idProyecto);
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print("{\"mensaje\": \"Proyecto eliminado exitosamente.\"}");
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
         else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             out.print("{\"error\": \"Ruta de proyectos no encontrada.\"}");

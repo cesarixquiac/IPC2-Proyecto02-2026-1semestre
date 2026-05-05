@@ -10,7 +10,13 @@ package com.mycompany.ipc2.proyecto02.service;
  */
 import com.mycompany.ipc2.proyecto02.dto.CompletarPerfilFreelancerDTO;
 import com.mycompany.ipc2.proyecto02.model.Freelancer;
+import java.util.List;
+import java.util.Map;
 
 public interface FreelancerService {
     Freelancer completarPerfil(Integer idUsuario, CompletarPerfilFreelancerDTO dto) throws Exception;
+    boolean tienePerfilCompleto(int idUsuario) throws Exception;
+    double obtenerSaldo(int idFreelancer) throws Exception;
+    // Método para obtener el historial de ganancias de los proyectos completados
+    List<Map<String, Object>> obtenerHistorialGanancias(int idFreelancer) throws Exception;
 }

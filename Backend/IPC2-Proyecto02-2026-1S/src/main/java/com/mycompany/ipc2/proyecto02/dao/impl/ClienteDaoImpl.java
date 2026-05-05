@@ -11,7 +11,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -107,6 +110,55 @@ public class ClienteDaoImpl implements ClienteDAO {
                 }
             }
         }
+    }
+    
+    @Override
+    public Cliente obtenerPerfil(Integer idCliente) {
+        String sql = "SELECT id_cliente, descripcion_empresa, sector_industria, sitio_web, saldo_disponible FROM Cliente WHERE id_cliente = ?";
+        
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idCliente);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Cliente cliente = new Cliente();
+                    cliente.setIdCliente(rs.getInt("id_cliente"));
+                    cliente.setDescripcionEmpresa(rs.getString("descripcion_empresa"));
+                    cliente.setSectorIndustria(rs.getString("sector_industria"));
+                    cliente.setSitioWeb(rs.getString("sitio_web"));
+                    cliente.setSaldoDisponible(rs.getDouble("saldo_disponible"));
+                    return cliente;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Retorna null si no lo encuentra
+    }
+    
+    @Override
+    public List<Map<String, Object>> obtenerHistorialRecargas(int idCliente) throws Exception {
+        List<Map<String, Object>> historial = new ArrayList<>();
+        
+        String sql = "SELECT monto, fecha_recarga FROM recarga_saldo " +
+                     "WHERE id_cliente = ? ORDER BY fecha_recarga DESC";
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idCliente);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> recarga = new HashMap<>();
+                    recarga.put("monto", rs.getDouble("monto"));
+                    recarga.put("fecha", rs.getDate("fecha_recarga").toString());
+                    historial.add(recarga);
+                }
+            }
+        }
+        return historial;
     }
 
     // Métodos CrudDao restantes omitidos por brevedad

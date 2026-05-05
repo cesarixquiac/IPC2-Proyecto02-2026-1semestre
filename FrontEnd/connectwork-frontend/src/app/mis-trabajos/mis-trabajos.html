@@ -1,0 +1,91 @@
+<div class="container mt-4 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">💼 Mis Trabajos Activos</h2>
+        <button class="btn btn-outline-primary" routerLink="/freelancer/dashboard">
+            Volver al Dashboard
+        </button>
+    </div>
+
+    <div *ngIf="mensajeError" class="alert alert-danger fw-bold">{{ mensajeError }}</div>
+
+    <div *ngIf="contratosActivos.length === 0 && !mensajeError" class="alert alert-info text-center fw-bold">
+        Aún no tienes contratos activos. ¡Sigue enviando propuestas!
+    </div>
+
+    <div class="row">
+        @for (contrato of contratosActivos; track contrato.idProyecto) {
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-4" 
+                 [ngClass]="{'border-primary': contrato.estado === 'EN_PROGRESO', 'border-warning': contrato.estado === 'ENTREGA_PENDIENTE'}">
+                
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold text-dark mb-3">{{ contrato.titulo }}</h5>
+                    
+                    <ul class="list-unstyled mb-4 bg-light p-3 rounded">
+                        <li class="mb-2">
+                            <strong>Estado: </strong>
+                            <span class="badge" 
+                                  [ngClass]="{'bg-primary': contrato.estado === 'EN_PROGRESO', 'bg-warning text-dark': contrato.estado === 'ENTREGA_PENDIENTE'}">
+                                {{ contrato.estado }}
+                            </span>
+                        </li>
+                        <li><strong>💰 Tu Oferta:</strong> Q. {{ contrato.montoOfertado }}</li>
+                        <li><strong>📅 Límite Cliente:</strong> {{ contrato.fechaLimite }}</li>
+                    </ul>
+
+                    <!-- Lógica del botón de entrega -->
+                    <div class="mt-auto">
+                        @if (contrato.estado === 'EN_PROGRESO') {
+                            <button class="btn btn-success w-100 fw-bold shadow-sm" 
+                                    data-bs-toggle="modal" data-bs-target="#modalEntrega"
+                                    (click)="abrirModalEntrega(contrato)">
+                                📤 Subir Entrega
+                            </button>
+                        } @else if (contrato.estado === 'ENTREGA_PENDIENTE') {
+                            <button class="btn btn-secondary w-100 fw-bold" disabled>
+                                ⏳ Esperando revisión del cliente
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+
+<!-- Modal para Subir la Entrega -->
+<div class="modal fade" id="modalEntrega" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">📤 Entregar Trabajo Final</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" *ngIf="contratoSeleccionado">
+                <div class="alert alert-info py-2 mb-4">
+                    Proyecto: <strong>{{ contratoSeleccionado.titulo }}</strong>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">URL del Archivo / Repositorio</label>
+                    <input type="url" class="form-control" [(ngModel)]="nuevaEntrega.urlArchivo" 
+                           placeholder="Ej: https://github.com/tu-usuario/proyecto o enlace de Drive">
+                    <small class="text-muted">Asegúrate de que el enlace sea público o tenga permisos.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Descripción / Notas de Entrega</label>
+                    <textarea class="form-control" rows="4" [(ngModel)]="nuevaEntrega.descripcion" 
+                              placeholder="Explica qué incluye esta entrega y si hay instrucciones adicionales..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success fw-bold" (click)="enviarTrabajo()" data-bs-dismiss="modal">
+                    Subir Trabajo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

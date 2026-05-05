@@ -26,4 +26,13 @@ export class ClienteService {
   return this.http.post(`${this.apiUrl}/recarga`, { monto });
 }
 
+  obtenerPerfil(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/perfil`);
+  }
+
+  // Obtener historial de recargas del cliente
+  obtenerHistorialRecargas(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/historial-recargas`);
+  }
+
 }

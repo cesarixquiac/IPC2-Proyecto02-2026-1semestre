@@ -9,6 +9,8 @@ import com.mycompany.ipc2.proyecto02.dao.impl.ClienteDaoImpl;
 import com.mycompany.ipc2.proyecto02.dto.CompletarPerfilClienteDTO;
 import com.mycompany.ipc2.proyecto02.model.Cliente;
 import com.mycompany.ipc2.proyecto02.service.ClienteService;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -55,4 +57,21 @@ public class ClienteServiceImpl implements ClienteService {
             throw new Exception("Ocurrió un error al procesar la recarga. Intente nuevamente.");
         }
     }
+    
+    @Override
+    public Cliente obtenerPerfil(Integer idCliente) throws Exception {
+        Cliente perfil = clienteDao.obtenerPerfil(idCliente);
+        if (perfil == null) {
+            throw new Exception("No se encontró el perfil en la base de datos.");
+        }
+        return perfil;
+    }
+    
+    @Override
+    public List<Map<String, Object>> obtenerHistorialRecargas(int idCliente) throws Exception {
+        // El puente: El service llama al método que acabas de crear en ClienteDaoImpl
+        return clienteDao.obtenerHistorialRecargas(idCliente);
+    }
+    
+    
 }

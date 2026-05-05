@@ -6,6 +6,8 @@ package com.mycompany.ipc2.proyecto02.service;
 
 import com.mycompany.ipc2.proyecto02.dto.CompletarPerfilClienteDTO;
 import com.mycompany.ipc2.proyecto02.model.Cliente;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -14,4 +16,7 @@ import com.mycompany.ipc2.proyecto02.model.Cliente;
 public interface ClienteService {
     Cliente completarPerfil(Integer idUsuario, CompletarPerfilClienteDTO dto) throws Exception;
     void realizarRecarga(Integer idCliente, Double monto) throws Exception;
+    Cliente obtenerPerfil(Integer idCliente) throws Exception;
+    
+    List<Map<String, Object>> obtenerHistorialRecargas(int idCliente) throws Exception;
 }

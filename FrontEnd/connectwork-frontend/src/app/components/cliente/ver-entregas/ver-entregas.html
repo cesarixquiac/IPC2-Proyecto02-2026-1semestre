@@ -1,0 +1,185 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="#">ConnectWork - Revisión de
+            Trabajo</a>
+        <div class="d-flex">
+            <a routerLink="/cliente/dashboard"
+                class="btn btn-outline-light">Volver al Panel</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    @if (!proyecto) {
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Cargando detalles del proyecto...</p>
+    </div>
+    } @else {
+    <!-- Cabecera del Proyecto -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold mb-0">{{ proyecto.titulo }}</h3>
+                <span class="badge fs-6"
+                    [ngClass]="{'bg-warning text-dark': proyecto.estado === 'ENTREGA_PENDIENTE', 'bg-info': proyecto.estado === 'EN_PROGRESO'}">
+                    {{ proyecto.estado }}
+                </span>
+            </div>
+            <p class="text-muted">{{ proyecto.descripcion }}</p>
+            <div class="d-flex gap-4 border-top pt-3">
+                <div><strong>Presupuesto:</strong> <span class="text-success">Q.
+                        {{ proyecto.presupuestoMaximo }}</span></div>
+                <div><strong>Fecha Límite:</strong> {{ proyecto.fechaLimite
+                    }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escenario 1: El proyecto está en progreso pero aún no hay entrega -->
+    @if (proyecto.estado === 'EN_PROGRESO') {
+    <div class="alert alert-info text-center py-5 shadow-sm border-0">
+        <i class="bi bi-tools fs-1"></i>
+        <h4 class="fw-bold mt-3">El freelancer está trabajando</h4>
+        <p class="mb-0 fs-5">Aún no se ha enviado ninguna entrega para revisión.
+            Recibirás una notificación cuando el trabajo esté listo.</p>
+    </div>
+    }
+
+    <!-- Escenario 2: Hay una entrega lista para revisión -->
+    @else if (proyecto.estado === 'ENTREGA_PENDIENTE' && entrega) {
+    <div class="card shadow border-0 border-start border-5 border-warning mb-4">
+        <div class="card-body">
+            <h4 class="fw-bold text-warning mb-4">📦 Entrega Recibida</h4>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Mensaje del Freelancer:</h6>
+                <div class="p-3 bg-light rounded text-muted fst-italic">
+                    "{{ entrega.comentarios }}"
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Archivos / Enlaces de Trabajo:</h6>
+                <a [href]="entrega.archivoUrl" target="_blank"
+                    class="btn btn-outline-primary">
+                    🔗 Ver Material Entregado
+                </a>
+            </div>
+
+            <hr>
+
+            <!-- Botones de Acción -->
+            <h6 class="fw-bold mb-3">¿Qué deseas hacer con esta entrega?</h6>
+            <div class="d-flex gap-3">
+                <button class="btn btn-success fw-bold px-4"
+                    data-bs-toggle="modal" data-bs-target="#modalAprobar">
+                    ✅ Aprobar y Liberar Pago
+                </button>
+
+                <button class="btn btn-warning fw-bold px-4"
+                    data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                    🔄 Solicitar Correcciones
+                </button>
+
+                <button class="btn btn-danger fw-bold ms-auto"
+                    data-bs-toggle="modal" data-bs-target="#modalCancelar">
+                    🚫 Cancelar Contrato
+                </button>
+            </div>
+        </div>
+    </div>
+    }
+    }
+</div>
+
+<!-- Modal para Rechazar Entrega (Solicitar Correcciones) -->
+<div class="modal fade" id="modalRechazar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold">🔄 Solicitar Correcciones</h5>
+                <button type="button" class="btn-close"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>El proyecto regresará a estado EN_PROGRESO. Por favor,
+                    explica qué necesita corregir el freelancer.</p>
+                <textarea class="form-control" rows="4"
+                    [(ngModel)]="motivoRechazo"
+                    placeholder="Ej: Faltó incluir la sección de reportes..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning fw-bold"
+                    (click)="procesarRechazo()" data-bs-dismiss="modal">Enviar
+                    Correcciones</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Cancelar Contrato -->
+<!-- Modal para Cancelar Contrato -->
+<div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">🚫 Cancelar Contrato</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>¡Atención!</strong> Esta acción es irreversible. El proyecto será cancelado y tu dinero regresará a tu saldo.
+                </div>
+                <p>Indica el motivo de la cancelación:</p>
+                <textarea class="form-control" rows="4" [(ngModel)]="motivoCancelacion" placeholder="Ej: El freelancer no cumplió con los requerimientos..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-danger fw-bold" (click)="procesarCancelacion()" data-bs-dismiss="modal">Confirmar Cancelación</button>
+            </div>
+        </div>
+    </div>
+</div> <!-- ¡ESTE ES EL DIV DE CIERRE QUE FALTABA! -->
+
+<!-- Modal para Aprobar y Calificar -->
+<div class="modal fade" id="modalAprobar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">✅ Aprobar y Calificar</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success">
+                    El pago será liberado al freelancer y el proyecto se marcará como COMPLETADO.
+                </div>
+                <h6 class="fw-bold mt-3">Califica el trabajo del freelancer:</h6>
+
+                <!-- Selección de Estrellas -->
+                <div class="mb-3">
+                    <label class="form-label">Estrellas (1 a 5):</label>
+                    <select class="form-select" [(ngModel)]="calificacion.estrellas">
+                        <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+                        <option value="4">⭐⭐⭐⭐ - Muy Bueno</option>
+                        <option value="3">⭐⭐⭐ - Bueno</option>
+                        <option value="2">⭐⭐ - Regular</option>
+                        <option value="1">⭐ - Malo</option>
+                    </select>
+                </div>
+
+                <!-- Comentario -->
+                <div class="mb-3">
+                    <label class="form-label">Comentario (Opcional):</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="calificacion.comentario" placeholder="Ej: Excelente trabajo, muy rápido..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success fw-bold" (click)="confirmarAprobacion()" data-bs-dismiss="modal">Confirmar y Pagar</button>
+            </div>
+        </div>
+    </div>
+</div>

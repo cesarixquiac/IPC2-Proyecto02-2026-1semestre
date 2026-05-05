@@ -19,6 +19,9 @@ import com.mycompany.ipc2.proyecto02.service.FreelancerService;
 import com.mycompany.ipc2.proyecto02.service.impl.FreelancerServiceImpl;
 
 import java.io.IOException;
+import static java.lang.System.out;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -78,11 +81,72 @@ public class FreelancerServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
 
+       
+        PrintWriter out = resp.getWriter();
+
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo != null && pathInfo.contains("/perfil/estado")) {
+            try {
+                Integer idUsuario = (Integer) req.getAttribute("idUsuario");
+                boolean tienePerfil = freelancerService.tienePerfilCompleto(idUsuario);
+
+                if (tienePerfil) {
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                    out.print("{\"completo\": true}");
+                    out.flush();
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND); 
+                    out.print("{\"completo\": false, \"error\": \"Perfil incompleto\"}");
+                    out.flush();
+                }
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }
+        else if (pathInfo != null && pathInfo.contains("/perfil/saldo")) {
+            try {
+                Integer idUsuario = (Integer) req.getAttribute("idUsuario");
+                double saldo = freelancerService.obtenerSaldo(idUsuario); 
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print("{\"saldo\": " + saldo + "}");
+                out.flush();
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }
+        else if (pathInfo != null && pathInfo.equals("/historial-ganancias")) {
+            try {
+                Integer idFreelancer = (Integer) req.getAttribute("idUsuario");
+                List<Map<String, Object>> historial = freelancerService.obtenerHistorialGanancias(idFreelancer);
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                
+                // 2. Imprimimos el JSON y lo empujamos
+                out.print(new Gson().toJson(historial));
+                out.flush();
+                
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }  
+        else {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            out.print("{\"error\": \"Ruta GET no encontrada.\"}");
+            out.flush();
+        }
+    }
     /**
      * Handles the HTTP <code>POST</code> method.
      *

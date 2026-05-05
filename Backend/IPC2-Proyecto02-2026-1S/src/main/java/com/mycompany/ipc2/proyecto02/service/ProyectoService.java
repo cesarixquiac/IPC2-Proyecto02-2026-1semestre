@@ -14,8 +14,31 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProyectoService {
+
     Proyecto publicarProyecto(Integer idCliente, PublicarProyectoDTO dto) throws Exception;
+
     List<Map<String, Object>> obtenerPropuestasPorProyecto(int idProyecto);
+
     void aceptarPropuesta(int idProyecto, int idPropuesta, int idCliente) throws Exception;
+
     void rechazarPropuesta(int idPropuesta) throws Exception;
+
+    Map<String, Object> obtenerDetalleEntrega(int idProyecto) throws Exception;
+
+    void aprobarEntrega(int idProyecto, int estrellas, String comentario) throws Exception;
+
+    void rechazarEntrega(int idProyecto, String motivo) throws Exception;
+
+    void cancelarContrato(int idProyecto, String motivo, int idCliente) throws Exception;
+
+    void editarProyectoAbierto(int idProyecto, String titulo, String descripcion, double presupuesto, String fechaLimite) throws Exception;
+
+    void eliminarProyectoAbierto(int idProyecto) throws Exception;
+    
+    List<Map<String, Object>> obtenerCatalogoHabilidades() throws Exception;
+    
+    List<Map<String, Object>> obtenerProyectosDisponibles(int idFreelancer) throws Exception;
+    
+    List<Map<String, Object>> obtenerContratosActivosFreelancer(int idFreelancer) throws Exception;
+
 }

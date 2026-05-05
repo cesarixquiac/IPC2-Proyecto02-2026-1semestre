@@ -14,6 +14,8 @@ import com.mycompany.ipc2.proyecto02.service.impl.ClienteServiceImpl;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -69,14 +71,41 @@ public class ClienteServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
+        
+        PrintWriter out = resp.getWriter();
+
         String pathInfo = req.getPathInfo();
 
-        // Creamos una sub-ruta para verificar si existe
         if (pathInfo != null && pathInfo.contains("/perfil/existe")) {
             verificarSiExistePerfil(req, resp);
-        } else {
+        } 
+        else if (pathInfo != null && pathInfo.equals("/perfil")) {
+            obtenerPerfilCompleto(req, resp);
+        } 
+        else if (pathInfo != null && pathInfo.equals("/historial-recargas")) {
+            try {
+                Integer idCliente = (Integer) req.getAttribute("idUsuario");
+                
+                List<Map<String, Object>> historial = clienteService.obtenerHistorialRecargas(idCliente);
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                
+                out.print(new Gson().toJson(historial));
+                
+           
+                out.flush(); 
+                
+            } catch (Exception e) {
+                e.printStackTrace(); 
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }
+        else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("{\"error\": \"Ruta de cliente GET no encontrada.\"}");
+            out.print("{\"error\": \"Ruta de cliente GET no encontrada.\"}");
+            out.flush();
         }
     }
 
@@ -173,4 +202,29 @@ public class ClienteServlet extends HttpServlet {
             resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
+    
+    private void obtenerPerfilCompleto(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            // Sacamos el ID del token (que tu filtro ya guardó en el request)
+            Integer idUsuario = (Integer) req.getAttribute("idUsuario");
+            
+            // Llamamos a tu servicio para traer los datos (asegúrate de tener este método en tu DAO/Service)
+            // Esto devolverá un objeto Cliente con id, descripcion, sector y saldoDisponible
+            Object perfil = clienteService.obtenerPerfil(idUsuario); 
+            
+            if (perfil != null) {
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write(new Gson().toJson(perfil));
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("{\"error\": \"No se encontró el perfil del cliente.\"}");
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"error\": \"Error al obtener el perfil: " + e.getMessage() + "\"}");
+        }
+    }
+    
 }

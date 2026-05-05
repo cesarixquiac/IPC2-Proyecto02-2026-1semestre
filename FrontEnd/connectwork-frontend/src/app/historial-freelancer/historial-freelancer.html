@@ -1,0 +1,37 @@
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">💰 Historial de Ganancias</h2>
+        <button class="btn btn-outline-primary" routerLink="/freelancer/dashboard">Volver al Dashboard</button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            @if (historial.length === 0) {
+                <div class="alert alert-info text-center fw-bold mb-0">Aún no tienes proyectos completados. ¡Sigue trabajando!</div>
+            } @else {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Fecha de Pago</th>
+                                <th>Monto Bruto</th>
+                                <th>Ganancia Neta (Tu Pago)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (ganancia of historial; track $index) {
+                            <tr>
+                                <td class="fw-bold">{{ ganancia.proyecto }}</td>
+                                <td>{{ ganancia.fecha }}</td>
+                                <td class="text-muted">Q. {{ ganancia.montoBruto | number:'1.2-2' }}</td>
+                                <td class="text-success fw-bold">+ Q. {{ ganancia.montoNeto | number:'1.2-2' }}</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
