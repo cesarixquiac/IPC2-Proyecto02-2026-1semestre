@@ -93,4 +93,25 @@ public class FreelancerServiceImpl implements FreelancerService {
         return freelancerDao.obtenerHistorialGanancias(idFreelancer);
     }
     
+    // --- MÉTODOS PARA REPORTES ---
+
+    @Override
+    public List<Map<String, Object>> obtenerReporteContratosCompletados(int idFreelancer, String fechaInicio, String fechaFin) throws Exception {
+        return freelancerDao.obtenerReporteContratosCompletados(idFreelancer, fechaInicio, fechaFin);
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerReporteTopCategorias(int idFreelancer) throws Exception {
+        return freelancerDao.obtenerReporteTopCategorias(idFreelancer);
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerReportePropuestasEnviadas(int idFreelancer, String fechaInicio, String fechaFin) throws Exception {
+        return freelancerDao.obtenerReportePropuestasEnviadas(idFreelancer, fechaInicio, fechaFin);
+    }
+    
+    @Override
+    public boolean solicitarNuevaHabilidad(int idFreelancer, String nombre, String descripcion) throws Exception {
+        return freelancerDao.solicitarNuevaHabilidad(idFreelancer, nombre, descripcion);
+    }
 }

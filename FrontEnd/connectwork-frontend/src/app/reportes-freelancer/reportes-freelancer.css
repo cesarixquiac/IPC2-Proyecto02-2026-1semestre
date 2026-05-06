@@ -1,0 +1,12 @@
+@media print {
+  /* Forzamos a que se impriman los bordes y colores en el papel */
+  .card {
+    border: 1px solid #ddd !important;
+    break-inside: avoid; /* Evita que una tabla se parta a la mitad de la hoja */
+  }
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: black !important;
+    border-bottom: 2px solid #000 !important;
+  }
+}

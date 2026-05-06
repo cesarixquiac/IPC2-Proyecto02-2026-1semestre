@@ -1,17 +1,32 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="#">ConnectWork - Freelancer</a>
-    
+
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-outline-info btn-sm fw-bold" routerLink="/freelancer/historial">
+      <button class="btn btn-outline-info btn-sm fw-bold"
+        routerLink="/freelancer/historial">
         📈 Mis Ganancias
       </button>
 
-      <button class="btn btn-info btn-sm text-white fw-bold shadow-sm" routerLink="/freelancer/mis-trabajos">
+      <button class="btn btn-info btn-sm text-white fw-bold shadow-sm"
+        routerLink="/freelancer/mis-trabajos">
         💼 Mis Trabajos
       </button>
 
-      <div class="bg-success text-white px-3 py-1 rounded fw-bold shadow-sm ms-2">
+      <!-- BOTÓN DE REPORTES -->
+      <button class="btn btn-outline-light btn-sm fw-bold shadow-sm"
+        routerLink="/freelancer/reportes">
+        📊 Mis Reportes
+      </button>
+
+      <!-- BOTÓN PARA ABRIR EL MODAL -->
+      <button class="btn btn-outline-primary fw-bold shadow-sm"
+        data-bs-toggle="modal" data-bs-target="#modalSolicitarHabilidad">
+        Sugerir Nueva Habilidad
+      </button>
+
+      <div
+        class="bg-success text-white px-3 py-1 rounded fw-bold shadow-sm ms-2">
         💰 Q. {{ saldoAcumulado | number:'1.2-2' }}
       </div>
     </div>
@@ -21,48 +36,92 @@
 <div class="container pb-5">
   <h2 class="mb-4 fw-bold">Proyectos Disponibles</h2>
 
-  <div *ngIf="mensajeError" class="alert alert-danger fw-bold">{{ mensajeError }}</div>
 
-  <div *ngIf="proyectosDisponibles.length === 0 && !mensajeError" class="alert alert-info text-center fw-bold">
-    Aún no hay proyectos publicados. ¡Vuelve más tarde!
+  <!-- BARRA DE FILTROS INTELIGENTES -->
+  <div class="card shadow-sm border-0 mb-4 bg-light">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3 text-secondary">🔍 Filtrar Proyectos</h6>
+      <div class="row g-2">
+        <!-- Filtro Categoría -->
+        <div class="col-md-3">
+          <input type="text" class="form-control" placeholder="Categoría (Ej. Desarrollo Web)" 
+                 [(ngModel)]="filtroCategoria" (keyup)="aplicarFiltros()">
+        </div>
+        <!-- Filtro Habilidad -->
+        <div class="col-md-3">
+          <input type="text" class="form-control" placeholder="Habilidades (Ej. Angular)" 
+                 [(ngModel)]="filtroHabilidad" (keyup)="aplicarFiltros()">
+        </div>
+        <!-- Filtro Presupuesto Mínimo -->
+        <div class="col-md-2">
+          <input type="number" class="form-control" placeholder="Presupuesto Mín. (Q)" 
+                 [(ngModel)]="filtroPresupuestoMin" (keyup)="aplicarFiltros()" (change)="aplicarFiltros()">
+        </div>
+        <!-- Filtro Presupuesto Máximo -->
+        <div class="col-md-2">
+          <input type="number" class="form-control" placeholder="Presupuesto Máx. (Q)" 
+                 [(ngModel)]="filtroPresupuestoMax" (keyup)="aplicarFiltros()" (change)="aplicarFiltros()">
+        </div>
+        <!-- Botón Limpiar -->
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100 fw-bold" (click)="limpiarFiltros()">
+            ❌ Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  @if (mensajeError) {
+  <div class="alert alert-danger fw-bold">{{ mensajeError }}</div>
+  }
+
+  @if (proyectosDisponibles.length === 0 && !mensajeError) {
+  <div class="alert alert-info text-center fw-bold">
+    Aún no hay proyectos publicados. ¡Vuelve más tarde!
+  </div>
+  }
+
   <div class="row">
-    <!-- Usamos @for moderno ya que estás en Angular 17+ -->
-    @for (proyecto of proyectosDisponibles; track proyecto.id) {
+    
+   @for (proyecto of proyectosFiltrados; track proyecto.id) {
     <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100 shadow-sm border-0 border-top border-4 border-primary">
+      <div
+        class="card h-100 shadow-sm border-0 border-top border-4 border-primary">
         <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="card-title fw-bold text-dark mb-0">{{ proyecto.titulo }}</h5>
+            <h5 class="card-title fw-bold text-dark mb-0">{{ proyecto.titulo
+              }}</h5>
             <span class="badge bg-secondary">{{ proyecto.categoria }}</span>
           </div>
-          
+
           <p class="card-text text-muted mb-3" style="font-size: 0.9em;">
-            {{ proyecto.descripcion | slice:0:120 }}... 
+            {{ proyecto.descripcion | slice:0:120 }}...
           </p>
-          
+
           <div class="mb-3">
-            <small class="text-primary fw-bold">Habilidades requeridas:</small><br>
+            <small class="text-primary fw-bold">Habilidades
+              requeridas:</small><br>
             <small class="text-muted">{{ proyecto.habilidades }}</small>
           </div>
-          
+
           <ul class="list-unstyled mb-4 mt-auto bg-light p-2 rounded">
-            <li><strong>💰 Presupuesto:</strong> Q. {{ proyecto.presupuestoMaximo }}</li>
+            <li><strong>💰 Presupuesto:</strong> Q. {{
+              proyecto.presupuestoMaximo }}</li>
             <li><strong>📅 Límite:</strong> {{ proyecto.fechaLimite }}</li>
           </ul>
-          
+
           <!-- Lógica inteligente del botón -->
           @if (proyecto.yaAplico) {
-            <button class="btn btn-secondary w-100 fw-bold mt-auto" disabled>
-              ✅ Propuesta Enviada
-            </button>
+          <button class="btn btn-secondary w-100 fw-bold mt-auto" disabled>
+            ✅ Propuesta Enviada
+          </button>
           } @else {
-            <button class="btn btn-success w-100 fw-bold mt-auto" 
-                    data-bs-toggle="modal" data-bs-target="#modalPropuesta"
-                    (click)="abrirModalPropuesta(proyecto)">
-              Enviar Propuesta
-            </button>
+          <button class="btn btn-success w-100 fw-bold mt-auto"
+            data-bs-toggle="modal" data-bs-target="#modalPropuesta"
+            (click)="abrirModalPropuesta(proyecto)">
+            Enviar Propuesta
+          </button>
           }
         </div>
       </div>
@@ -77,37 +136,87 @@
     <div class="modal-content">
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title fw-bold">✉️ Enviar Propuesta</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white"
+          data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" *ngIf="proyectoSeleccionado">
+      @if (proyectoSeleccionado) {
+      <div class="modal-body">
         <div class="alert alert-info py-2">
           Proyecto: <strong>{{ proyectoSeleccionado.titulo }}</strong><br>
-          Presupuesto Max: <strong>Q. {{ proyectoSeleccionado.presupuestoMaximo }}</strong>
+          Presupuesto Max: <strong>Q. {{ proyectoSeleccionado.presupuestoMaximo
+            }}</strong>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label fw-bold">Monto a Ofertar (Q.)</label>
-            <input type="number" class="form-control" [(ngModel)]="nuevaPropuesta.montoOfertado" placeholder="Ej: 1150.00">
+            <input type="number" class="form-control"
+              [(ngModel)]="nuevaPropuesta.montoOfertado"
+              placeholder="Ej: 1150.00">
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Plazo de Entrega (Días)</label>
-            <input type="number" class="form-control" [(ngModel)]="nuevaPropuesta.plazoDias" placeholder="Ej: 20">
+            <input type="number" class="form-control"
+              [(ngModel)]="nuevaPropuesta.plazoDias" placeholder="Ej: 20">
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label fw-bold">Carta de Presentación</label>
-          <textarea class="form-control" rows="4" [(ngModel)]="nuevaPropuesta.cartaPresentacion" 
+          <textarea class="form-control" rows="4"
+            [(ngModel)]="nuevaPropuesta.cartaPresentacion"
             placeholder="Explica por qué eres ideal para este proyecto..."></textarea>
         </div>
       </div>
+      }
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold" (click)="enviarPropuestaFinal()" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-secondary"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success fw-bold"
+          (click)="enviarPropuestaFinal()" data-bs-dismiss="modal">
           🚀 Enviar Propuesta
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Solicitar Nueva Habilidad -->
+<div class="modal fade" id="modalSolicitarHabilidad" tabindex="-1" aria-labelledby="modalSolicitarHabilidadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      
+      <!-- Encabezado -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalSolicitarHabilidadLabel">Sugerir Nueva Habilidad</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Cuerpo del Modal -->
+      <div class="modal-body">
+        <p class="text-muted small mb-4">
+          ¿No encuentras tu especialidad? Sugiere una nueva habilidad al administrador. Una vez aprobada, podrás agregarla a tu perfil.
+        </p>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Nombre de la Habilidad <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" placeholder="Ej. Angular 17, Docker, SAP" [(ngModel)]="nuevaHabilidad.nombre">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Descripción (Opcional)</label>
+          <textarea class="form-control" rows="3" placeholder="Breve descripción de la tecnología o conocimiento..." [(ngModel)]="nuevaHabilidad.descripcion"></textarea>
+        </div>
+      </div>
+
+      <!-- Pie del Modal -->
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary fw-bold" (click)="enviarSolicitudHabilidad()">
+          🚀 Enviar Solicitud
+        </button>
+      </div>
+
     </div>
   </div>
 </div>

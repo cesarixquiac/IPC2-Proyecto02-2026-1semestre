@@ -19,4 +19,12 @@ public interface FreelancerService {
     double obtenerSaldo(int idFreelancer) throws Exception;
     // Método para obtener el historial de ganancias de los proyectos completados
     List<Map<String, Object>> obtenerHistorialGanancias(int idFreelancer) throws Exception;
+    // --- MÉTODOS PARA REPORTES ---
+    List<Map<String, Object>> obtenerReporteContratosCompletados(int idFreelancer, String fechaInicio, String fechaFin) throws Exception;
+    
+    List<Map<String, Object>> obtenerReporteTopCategorias(int idFreelancer) throws Exception;
+    
+    List<Map<String, Object>> obtenerReportePropuestasEnviadas(int idFreelancer, String fechaInicio, String fechaFin) throws Exception;
+    
+    boolean solicitarNuevaHabilidad(int idFreelancer, String nombre, String descripcion) throws Exception;
 }

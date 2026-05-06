@@ -154,6 +154,133 @@ public class FreelancerDaoImpl implements FreelancerDao {
         }
         return historial;
     }
+    
+    @Override
+    public List<Map<String, Object>> obtenerReporteContratosCompletados(int idFreelancer, String fechaInicio, String fechaFin) throws Exception {
+        List<Map<String, Object>> reporte = new ArrayList<>();
+        
+        String sql = 
+            "SELECT u.nombre_completo AS cliente, p.titulo AS proyecto, " +
+            "       (c.monto_bloqueado - (c.monto_bloqueado * (c.porcentaje_comision_aplicado / 100))) AS monto_recibido, " +
+            "       cal.estrellas, cal.fecha_calificacion " +
+            "FROM contrato c " +
+            "JOIN propuesta pr ON c.id_propuesta = pr.id_propuesta " +
+            "JOIN proyecto p ON pr.id_proyecto = p.id_proyecto " +
+            "JOIN usuario u ON p.id_cliente = u.id_usuario " +
+            "JOIN calificacion cal ON c.id_contrato = cal.id_contrato " +
+            "WHERE pr.id_freelancer = ? " +
+            "  AND p.estado = 'COMPLETADO' " +
+            "  AND DATE(cal.fecha_calificacion) BETWEEN ? AND ? " +
+            "ORDER BY cal.fecha_calificacion DESC";
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idFreelancer);
+            stmt.setString(2, fechaInicio); // Formato esperado: "YYYY-MM-DD"
+            stmt.setString(3, fechaFin);    // Formato esperado: "YYYY-MM-DD"
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> fila = new HashMap<>();
+                    fila.put("cliente", rs.getString("cliente"));
+                    fila.put("proyecto", rs.getString("proyecto"));
+                    fila.put("monto_recibido", rs.getDouble("monto_recibido"));
+                    fila.put("calificacion", rs.getInt("estrellas"));
+                    fila.put("fecha", rs.getString("fecha_calificacion"));
+                    reporte.add(fila);
+                }
+            }
+        }
+        return reporte;
+    }
+    
+    @Override
+    public List<Map<String, Object>> obtenerReporteTopCategorias(int idFreelancer) throws Exception {
+        List<Map<String, Object>> reporte = new ArrayList<>();
+        
+        String sql = 
+            "SELECT cat.nombre AS categoria, " +
+            "       COUNT(c.id_contrato) AS cantidad_contratos, " +
+            "       SUM(c.monto_bloqueado - (c.monto_bloqueado * (c.porcentaje_comision_aplicado / 100))) AS total_ingresos " +
+            "FROM categoria cat " +
+            "JOIN proyecto p ON cat.id_categoria = p.id_categoria " +
+            "JOIN propuesta pr ON p.id_proyecto = p.id_proyecto " +
+            "JOIN contrato c ON pr.id_propuesta = c.id_propuesta " +
+            "WHERE pr.id_freelancer = ? " +
+            "  AND pr.estado = 'ACEPTADA' " +
+            "GROUP BY cat.id_categoria, cat.nombre " +
+            "ORDER BY cantidad_contratos DESC, total_ingresos DESC " +
+            "LIMIT 5";
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idFreelancer);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> fila = new HashMap<>();
+                    fila.put("categoria", rs.getString("categoria"));
+                    fila.put("cantidad_contratos", rs.getInt("cantidad_contratos"));
+                    fila.put("total_ingresos", rs.getDouble("total_ingresos"));
+                    reporte.add(fila);
+                }
+            }
+        }
+        return reporte;
+    }
+    
+    @Override
+    public List<Map<String, Object>> obtenerReportePropuestasEnviadas(int idFreelancer, String fechaInicio, String fechaFin) throws Exception {
+        List<Map<String, Object>> reporte = new ArrayList<>();
+        
+        String sql = 
+            "SELECT p.titulo AS proyecto, pr.monto_ofertado, pr.estado, pr.fecha_envio " +
+            "FROM propuesta pr " +
+            "JOIN proyecto p ON pr.id_proyecto = p.id_proyecto " +
+            "WHERE pr.id_freelancer = ? " +
+            "  AND DATE(pr.fecha_envio) BETWEEN ? AND ? " +
+            "ORDER BY pr.fecha_envio DESC";
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idFreelancer);
+            stmt.setString(2, fechaInicio); // Formato esperado: "YYYY-MM-DD"
+            stmt.setString(3, fechaFin);    // Formato esperado: "YYYY-MM-DD"
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> fila = new HashMap<>();
+                    fila.put("proyecto", rs.getString("proyecto"));
+                    fila.put("monto_ofertado", rs.getDouble("monto_ofertado"));
+                    fila.put("estado", rs.getString("estado"));
+                    fila.put("fecha", rs.getString("fecha_envio"));
+                    reporte.add(fila);
+                }
+            }
+        }
+        return reporte;
+    }
+    
+    @Override
+    public boolean solicitarNuevaHabilidad(int idFreelancer, String nombre, String descripcion) throws Exception {
+        String sql = "INSERT INTO solicitud_catalogo (id_usuario_solicitante, tipo_solicitud, nombre_sugerido, descripcion, estado) " +
+                     "VALUES (?, 'HABILIDAD', ?, ?, 'PENDIENTE')";
+                     
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idFreelancer);
+            stmt.setString(2, nombre);
+            stmt.setString(3, descripcion);
+            
+            int filasAfectadas = stmt.executeUpdate();
+            return filasAfectadas > 0; // Retorna true si se insertó correctamente
+        }
+    }
+    
 
     // Métodos heredados de CrudDao (obligatorios, aunque no los usemos ahora)
     @Override public Optional<Freelancer> obtenerPorId(Integer id) { return Optional.empty(); }

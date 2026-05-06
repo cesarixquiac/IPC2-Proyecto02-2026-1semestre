@@ -19,7 +19,6 @@ import com.mycompany.ipc2.proyecto02.service.FreelancerService;
 import com.mycompany.ipc2.proyecto02.service.impl.FreelancerServiceImpl;
 
 import java.io.IOException;
-import static java.lang.System.out;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -140,7 +139,74 @@ public class FreelancerServlet extends HttpServlet {
                 out.print("{\"error\": \"" + e.getMessage() + "\"}");
                 out.flush();
             }
-        }  
+        }// --- 1. REPORTE: Contratos Completados ---
+        else if (pathInfo != null && pathInfo.equals("/reportes/contratos-completados")) {
+            try {
+                Integer idFreelancer = (Integer) req.getAttribute("idUsuario");
+                String fechaInicio = req.getParameter("inicio");
+                String fechaFin = req.getParameter("fin");
+                
+                if (fechaInicio == null || fechaFin == null) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("{\"error\": \"Se requieren las fechas 'inicio' y 'fin'\"}");
+                    out.flush();
+                    return;
+                }
+
+                List<Map<String, Object>> reporte = freelancerService.obtenerReporteContratosCompletados(idFreelancer, fechaInicio, fechaFin);
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+                out.flush();
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }
+        
+        // --- 2. REPORTE: Top 5 Categorías ---
+        else if (pathInfo != null && pathInfo.equals("/reportes/top-categorias")) {
+            try {
+                Integer idFreelancer = (Integer) req.getAttribute("idUsuario");
+                
+                List<Map<String, Object>> reporte = freelancerService.obtenerReporteTopCategorias(idFreelancer);
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+                out.flush();
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        }
+
+        // --- 3. REPORTE: Propuestas Enviadas ---
+        else if (pathInfo != null && pathInfo.equals("/reportes/propuestas-enviadas")) {
+            try {
+                Integer idFreelancer = (Integer) req.getAttribute("idUsuario");
+                String fechaInicio = req.getParameter("inicio");
+                String fechaFin = req.getParameter("fin");
+                
+                if (fechaInicio == null || fechaFin == null) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("{\"error\": \"Se requieren las fechas 'inicio' y 'fin'\"}");
+                    out.flush();
+                    return;
+                }
+
+                List<Map<String, Object>> reporte = freelancerService.obtenerReportePropuestasEnviadas(idFreelancer, fechaInicio, fechaFin);
+                
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+                out.flush();
+            } catch (Exception e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        } 
         else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             out.print("{\"error\": \"Ruta GET no encontrada.\"}");
@@ -160,13 +226,59 @@ public class FreelancerServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
+        // Creamos la tubería y obtenemos la ruta
+        PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
 
         if (pathInfo != null && pathInfo.contains("/perfil")) {
             manejarCompletarPerfil(req, resp);
-        } else {
+        }// --- CREAR: Solicitar nueva habilidad ---
+        else if (pathInfo != null && pathInfo.contains("/solicitar-habilidad")) {
+            try {
+                Integer idFreelancer = (Integer) req.getAttribute("idUsuario");
+                
+                // Leemos el JSON que envía Angular en el body
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = req.getReader().readLine()) != null) {
+                    sb.append(line);
+                }
+                
+                // Convertimos el JSON a un Map usando Gson
+                Map<String, String> body = new Gson().fromJson(sb.toString(), Map.class);
+                String nombre = body.get("nombre");
+                String descripcion = body.get("descripcion");
+                
+                if (nombre == null || nombre.trim().isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("{\"error\": \"El nombre de la habilidad es obligatorio\"}");
+                    out.flush();
+                    return;
+                }
+
+                boolean exito = freelancerService.solicitarNuevaHabilidad(idFreelancer, nombre, descripcion);
+                
+                if (exito) {
+                    resp.setStatus(HttpServletResponse.SC_CREATED); // 201 Created
+                    out.print("{\"mensaje\": \"Solicitud enviada correctamente al administrador\"}");
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    out.print("{\"error\": \"No se pudo guardar la solicitud\"}");
+                }
+                out.flush();
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
+                out.flush();
+            }
+        } 
+        else {
+            // El mensaje de error que estabas viendo
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("{\"error\": \"Ruta de freelancer no encontrada.\"}");
+            out.print("{\"error\": \"Ruta POST de freelancer no encontrada.\"}");
+            out.flush();
         }
     }
     

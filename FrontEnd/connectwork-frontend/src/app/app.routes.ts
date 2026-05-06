@@ -12,6 +12,7 @@ import { CompletarPerfilFreelancerComponent } from './components/freelancer/comp
 import { MisTrabajosComponent } from './mis-trabajos/mis-trabajos';
 import { HistorialFreelancerComponent } from './historial-freelancer/historial-freelancer';
 import { HistorialClienteComponent } from './historial-cliente/historial-cliente';
+import { ReportesFreelancerComponent } from './reportes-freelancer/reportes-freelancer';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -20,14 +21,15 @@ export const routes: Routes = [
   { path: 'cliente/dashboard', component: DashboardClienteComponent, canActivate: [authGuard] },
   { path: 'freelancer/dashboard', component: DashboardFreelancerComponent, canActivate: [authGuard] },
   { path: 'cliente/publicar-proyecto', component: PublicarProyectoComponent, canActivate: [authGuard] },
-    { path: 'cliente/completar-perfil', component: CompletarPerfilComponent, canActivate: [authGuard] },
-    { path: 'cliente/proyectos/:id/propuestas', component: VerPropuestasComponent, canActivate: [authGuard] },
-    { path: 'cliente/proyectos/:id/entregas', component: VerEntregasComponent, canActivate: [authGuard] } ,
-    { path: 'freelancer/completar-perfil', component: CompletarPerfilFreelancerComponent,  canActivate: [authGuard] },
-    { path: 'freelancer/mis-trabajos', component: MisTrabajosComponent, canActivate: [authGuard] }, 
-    { path: 'cliente/historial', component: HistorialClienteComponent, canActivate: [authGuard] },
-{ path: 'freelancer/historial', component: HistorialFreelancerComponent, canActivate: [authGuard] },
+  { path: 'cliente/completar-perfil', component: CompletarPerfilComponent, canActivate: [authGuard] },
+  { path: 'cliente/proyectos/:id/propuestas', component: VerPropuestasComponent, canActivate: [authGuard] },
+  { path: 'cliente/proyectos/:id/entregas', component: VerEntregasComponent, canActivate: [authGuard] },
+  { path: 'freelancer/completar-perfil', component: CompletarPerfilFreelancerComponent, canActivate: [authGuard] },
+  { path: 'freelancer/mis-trabajos', component: MisTrabajosComponent, canActivate: [authGuard] },
+  { path: 'cliente/historial', component: HistorialClienteComponent, canActivate: [authGuard] },
+  { path: 'freelancer/historial', component: HistorialFreelancerComponent, canActivate: [authGuard] },
+  { path: 'freelancer/reportes', component: ReportesFreelancerComponent, canActivate: [authGuard] },
   { path: 'registro', component: RegistroComponent },
   { path: '**', redirectTo: 'login' },
- 
+
 ];

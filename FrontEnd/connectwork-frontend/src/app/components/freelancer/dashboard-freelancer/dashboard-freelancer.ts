@@ -15,7 +15,17 @@ import { FreelancerService } from '../../../services/freelancer';
 })
 export class DashboardFreelancerComponent implements OnInit {
   proyectosDisponibles: any[] = [];
+  proyectosFiltrados: any[] = []; // <-- Este es el que mostraremos en pantalla
   mensajeError: string = '';
+
+  // Variables para los filtros
+  filtroCategoria: string = '';
+  filtroHabilidad: string = '';
+  filtroPresupuestoMin: number | null = null;
+  filtroPresupuestoMax: number | null = null;
+
+
+ 
   
   // Tu brillante idea del Saldo
   saldoAcumulado: number = 0.00; // Luego lo traeremos del backend
@@ -56,10 +66,49 @@ export class DashboardFreelancerComponent implements OnInit {
 
   cargarProyectos() {
     this.proyectoService.obtenerProyectosDisponibles().subscribe({
-      next: (data) => this.proyectosDisponibles = data,
+      next: (data) => {
+        this.proyectosDisponibles = data;
+        this.proyectosFiltrados = data; 
+      },
       error: (err) => this.mensajeError = 'Error: ' + (err.error?.error || '')
     });
   }
+
+  // LÓGICA MÁGICA DE FILTRADO EN TIEMPO REAL
+  aplicarFiltros() {
+    this.proyectosFiltrados = this.proyectosDisponibles.filter(p => {
+      let cumpleCategoria = true;
+      let cumpleHabilidad = true;
+      let cumplePresupuestoMin = true;
+      let cumplePresupuestoMax = true;
+
+      if (this.filtroCategoria) {
+        cumpleCategoria = p.categoria.toLowerCase().includes(this.filtroCategoria.toLowerCase());
+      }
+      if (this.filtroHabilidad) {
+        // Asumiendo que p.habilidades es un string separado por comas
+        cumpleHabilidad = p.habilidades.toLowerCase().includes(this.filtroHabilidad.toLowerCase());
+      }
+      if (this.filtroPresupuestoMin !== null && this.filtroPresupuestoMin > 0) {
+        cumplePresupuestoMin = p.presupuestoMaximo >= this.filtroPresupuestoMin;
+      }
+      if (this.filtroPresupuestoMax !== null && this.filtroPresupuestoMax > 0) {
+        cumplePresupuestoMax = p.presupuestoMaximo <= this.filtroPresupuestoMax;
+      }
+
+      return cumpleCategoria && cumpleHabilidad && cumplePresupuestoMin && cumplePresupuestoMax;
+    });
+  }
+
+  limpiarFiltros() {
+    this.filtroCategoria = '';
+    this.filtroHabilidad = '';
+    this.filtroPresupuestoMin = null;
+    this.filtroPresupuestoMax = null;
+    this.proyectosFiltrados = [...this.proyectosDisponibles]; // Restauramos todo
+  }
+
+
 
   abrirModalPropuesta(proyecto: any) {
     this.proyectoSeleccionado = proyecto;
@@ -87,6 +136,39 @@ export class DashboardFreelancerComponent implements OnInit {
         this.cargarProyectos(); // Recargamos para que el botón se bloquee
       },
       error: (err) => alert("Error: " + err.error?.error)
+    });
+  }
+
+  // Variables para el formulario del modal
+  nuevaHabilidad = {
+    nombre: '',
+    descripcion: ''
+  };
+
+  // Función para enviar la solicitud
+  enviarSolicitudHabilidad() {
+    if (!this.nuevaHabilidad.nombre.trim()) {
+      alert(" El nombre de la habilidad es obligatorio.");
+      return;
+    }
+
+    this.freelancerService.solicitarNuevaHabilidad(this.nuevaHabilidad.nombre, this.nuevaHabilidad.descripcion).subscribe({
+      next: (res) => {
+        alert(" " + res.mensaje);
+        // Limpiamos el formulario
+        this.nuevaHabilidad = { nombre: '', descripcion: '' };
+        
+        // Cerramos el modal usando vanilla JS (opcional, para que se cierre solo)
+        const modalElement = document.getElementById('modalSolicitarHabilidad');
+        if (modalElement) {
+          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modalElement);
+          if (bootstrapModal) bootstrapModal.hide();
+        }
+      },
+      error: (err) => {
+        console.error("Error al solicitar habilidad:", err);
+        alert("Ocurrió un error al enviar la solicitud.");
+      }
     });
   }
 
