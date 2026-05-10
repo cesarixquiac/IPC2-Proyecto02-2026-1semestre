@@ -13,11 +13,13 @@ import { MisTrabajosComponent } from './mis-trabajos/mis-trabajos';
 import { HistorialFreelancerComponent } from './historial-freelancer/historial-freelancer';
 import { HistorialClienteComponent } from './historial-cliente/historial-cliente';
 import { ReportesFreelancerComponent } from './reportes-freelancer/reportes-freelancer';
+import { DashboardAdminComponent } from './dashboard-admin/dashboard-admin';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
 
+  { path: 'admin/dashboard', component: DashboardAdminComponent, canActivate: [authGuard] },
   { path: 'cliente/dashboard', component: DashboardClienteComponent, canActivate: [authGuard] },
   { path: 'freelancer/dashboard', component: DashboardFreelancerComponent, canActivate: [authGuard] },
   { path: 'cliente/publicar-proyecto', component: PublicarProyectoComponent, canActivate: [authGuard] },

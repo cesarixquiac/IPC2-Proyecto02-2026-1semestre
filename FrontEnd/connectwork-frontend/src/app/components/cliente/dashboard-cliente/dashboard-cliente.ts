@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core'; 
 import { CommonModule } from '@angular/common'; 
 import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // <-- IMPORTANTE PARA EL MODAL
+import { FormsModule } from '@angular/forms'; 
 import { Auth } from '../../../services/auth';
 import { ClienteService } from '../../../services/cliente'; 
 import { ProyectoService } from '../../../services/proyecto';
@@ -9,7 +9,7 @@ import { ProyectoService } from '../../../services/proyecto';
 @Component({
   selector: 'app-dashboard-cliente',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule], // <-- AGREGADO AQUÍ
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './dashboard-cliente.html',
   styleUrl: './dashboard-cliente.css'
 })
@@ -19,9 +19,18 @@ export class DashboardClienteComponent implements OnInit {
   misProyectos: any[] = [];
   mensajeError: string = '';
   
-  // Nuevas variables para el perfil y el modal
   cliente: any = { saldoDisponible: 0 }; 
   montoRecarga: number = 0;
+
+  // --- VARIABLES DE REPORTES ---
+  fechaInicio: string = '';
+  fechaFin: string = '';
+  historialProyectos: any[] = [];
+  historialRecargas: any[] = [];
+  gastosCategoria: any[] = [];
+  
+  // ¡Variable iniciada en 0! Se llenará mágicamente en el ngOnInit
+  idClienteActual: number = 0; 
 
   constructor(
     private authService: Auth,
@@ -32,6 +41,17 @@ export class DashboardClienteComponent implements OnInit {
 
   ngOnInit(): void {
     this.revisarPerfil();
+
+    // Sacamos tu ID real del Token
+    const datosUsuario = this.authService.obtenerDatosUsuario();
+    if (datosUsuario && datosUsuario.idUsuario) {
+      this.idClienteActual = datosUsuario.idUsuario; 
+    }
+
+    
+    if (this.idClienteActual > 0) {
+      this.cargarHistorialRecargas();
+    }
   }
 
   revisarPerfil() {
@@ -39,7 +59,7 @@ export class DashboardClienteComponent implements OnInit {
       next: (res) => {
         this.cargando = false;
         this.cargarMisProyectos();
-        this.cargarDatosPerfil(); // <-- Cargamos el saldo una vez que sabemos que existe
+        this.cargarDatosPerfil();
       },
       error: (err) => {
         if (err.status === 404) {
@@ -52,7 +72,6 @@ export class DashboardClienteComponent implements OnInit {
     });
   }
 
-  // Nuevo método para obtener el saldo actual
   cargarDatosPerfil() {
     this.clienteService.obtenerPerfil().subscribe({
       next: (data) => {
@@ -81,7 +100,8 @@ export class DashboardClienteComponent implements OnInit {
       next: (res) => {
         alert(res.mensaje);
         this.montoRecarga = 0;
-        this.cargarDatosPerfil(); // <-- Actualizamos el saldo mágicamente sin recargar la página
+        this.cargarDatosPerfil();
+        this.cargarHistorialRecargas(); // <-- Actualiza la tabla de recargas al instante
       },
       error: (err) => alert("Error al recargar: " + (err.error?.error || "Desconocido"))
     });
@@ -92,11 +112,9 @@ export class DashboardClienteComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-
   proyectoAEditar: any = { id: 0, titulo: '', descripcion: '', presupuestoMaximo: 0, fechaLimite: '' };
 
   abrirModalEditar(proyecto: any) {
-  
     this.proyectoAEditar = { ...proyecto };
   }
 
@@ -104,7 +122,7 @@ export class DashboardClienteComponent implements OnInit {
     this.proyectoService.editarProyecto(this.proyectoAEditar.id, this.proyectoAEditar).subscribe({
       next: (res) => {
         alert("¡Proyecto actualizado!");
-        this.cargarMisProyectos(); // Recargamos la tabla
+        this.cargarMisProyectos();
       },
       error: (err) => alert("Error: " + err.error?.error)
     });
@@ -115,12 +133,51 @@ export class DashboardClienteComponent implements OnInit {
       this.proyectoService.eliminarProyecto(idProyecto).subscribe({
         next: (res) => {
           alert("Proyecto eliminado.");
-          this.cargarMisProyectos(); // Recargamos la tabla
+          this.cargarMisProyectos();
         },
         error: (err) => alert("Error al eliminar: " + err.error?.error)
       });
     }
   }
 
+  // --- MÉTODOS DE REPORTES ---
+  cargarHistorialRecargas() {
+    if (this.idClienteActual > 0) {
+      this.clienteService.reporteRecargas(this.idClienteActual).subscribe(data => this.historialRecargas = data);
+    }
+  }
+
+  generarReportes() {
+    if (!this.fechaInicio || !this.fechaFin) {
+      alert("⚠️ Selecciona ambas fechas.");
+      return;
+    }
+
+    this.clienteService.reporteProyectos(this.idClienteActual, this.fechaInicio, this.fechaFin).subscribe(data => this.historialProyectos = data);
+    this.clienteService.reporteGastos(this.idClienteActual, this.fechaInicio, this.fechaFin).subscribe(data => this.gastosCategoria = data);
+    
+    this.cargarHistorialRecargas(); 
+  }
+
+  imprimirReportes() {
+    window.print();
+  }
+
+  solicitudCat = { nombre: '', descripcion: '' };
+
+  enviarSolicitudCategoria() {
+    if (!this.solicitudCat.nombre.trim() || !this.solicitudCat.descripcion.trim()) {
+      alert("⚠️ Por favor ingresa el nombre y una breve descripción.");
+      return;
+    }
+    
+    this.clienteService.solicitarCategoria(this.idClienteActual, this.solicitudCat.nombre, this.solicitudCat.descripcion).subscribe({
+      next: (res) => {
+        alert("✅ " + res.mensaje);
+        this.solicitudCat = { nombre: '', descripcion: '' }; // Limpiar formulario
+      },
+      error: (err) => alert("❌ Error: " + (err.error?.error || "Desconocido"))
+    });
+  }
 
 }

@@ -73,5 +73,23 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteDao.obtenerHistorialRecargas(idCliente);
     }
     
+    @Override
+    public List<Map<String, Object>> reporteHistorialProyectos(int idCliente, String fechaInicio, String fechaFin) throws Exception {
+        return clienteDao.reporteHistorialProyectos(idCliente, fechaInicio, fechaFin);
+    }
+
+    @Override
+    public List<Map<String, Object>> reporteHistorialRecargas(int idCliente) throws Exception {
+        return clienteDao.reporteHistorialRecargas(idCliente);
+    }
+
+    @Override
+    public List<Map<String, Object>> reporteGastoPorCategoria(int idCliente, String fechaInicio, String fechaFin) throws Exception {
+        return clienteDao.reporteGastoPorCategoria(idCliente, fechaInicio, fechaFin);
+    }
     
+    @Override
+    public boolean solicitarCategoria(int idUsuario, String nombre, String descripcion) throws Exception {
+        return clienteDao.solicitarCategoria(idUsuario, nombre, descripcion);
+    }
 }

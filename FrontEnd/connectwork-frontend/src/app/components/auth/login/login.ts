@@ -38,7 +38,7 @@ export class LoginComponent {
           this.router.navigate(['/cliente/dashboard']);
         } else if (usuario.rol === 'FREELANCER') {
           this.router.navigate(['/freelancer/dashboard']);
-        } else if (usuario.rol === 'ADMINISTRADOR') {
+        } else if (usuario.rol === 'ADMIN') {
           this.router.navigate(['/admin/dashboard']); // Si tienes este rol
         }
       },

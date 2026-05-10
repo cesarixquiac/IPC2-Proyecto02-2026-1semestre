@@ -2,12 +2,17 @@
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="#">ConnectWork - Panel de
             Cliente</a>
-
-            
         <div class="d-flex gap-3 align-items-center">
-            <button class="btn btn-light btn-sm fw-bold shadow-sm" routerLink="/cliente/historial">
+
+            <button class="btn btn-light btn-sm fw-bold shadow-sm"
+                routerLink="/cliente/historial">
                 📜 Mi Historial
             </button>
+
+            <button class="btn  btn-light btn-outline-primary fw-bold shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalSolicitarCategoria">
+                💡 Solicitar Categoría
+            </button>
+
             <button class="btn btn-outline-light btn-sm"
                 (click)="cerrarSesion()">Cerrar Sesión</button>
         </div>
@@ -67,7 +72,7 @@
     <h4 class="fw-bold mb-3">Mis Proyectos</h4>
 
     <!-- Tabla de Proyectos -->
-    <div class="card shadow border-0">
+    <div class="card shadow border-0 mb-5">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead class="table-dark">
@@ -101,7 +106,7 @@
                                 <button class="btn btn-sm btn-primary fw-bold"
                                     [routerLink]="['/cliente/proyectos', proyecto.id, 'propuestas']"
                                     title="Ver Propuestas">
-                                     Ver Propuestas
+                                    Ver Propuestas
                                 </button>
                                 <button class="btn btn-sm btn-warning"
                                     data-bs-toggle="modal"
@@ -134,7 +139,6 @@
                             </button>
                             }
                         </td>
-
                     </tr>
                     } @empty {
                     <tr>
@@ -148,6 +152,122 @@
             </table>
         </div>
     </div>
+
+    <!-- ======================================================= -->
+    <!-- SECCIÓN DE REPORTES DEL CLIENTE (AÑADIDO AQUÍ)          -->
+    <!-- ======================================================= -->
+    <div class="mt-5 pt-4 border-top" id="zona-reportes">
+
+        <!-- ENCABEZADO Y BOTÓN DE IMPRIMIR -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">📊 Mis Reportes</h2>
+            <!-- BOTÓN IMPRIMIR (Se oculta al imprimir gracias a no-print) -->
+            <button class="btn btn-outline-dark fw-bold no-print"
+                (click)="imprimirReportes()">
+                🖨️ Imprimir PDF
+            </button>
+        </div>
+
+        <!-- SELECTORES DE FECHA (Le ponemos no-print para que no salgan los inputs en el papel) -->
+        <div class="card shadow-sm border-0 mb-4 bg-light no-print">
+            <div class="card-body row align-items-end g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Inicio</label>
+                    <input type="date" class="form-control"
+                        [(ngModel)]="fechaInicio">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Fin</label>
+                    <input type="date" class="form-control"
+                        [(ngModel)]="fechaFin">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-dark w-100 fw-bold"
+                        (click)="generarReportes()">🚀 Generar Reportes</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- REPORTE 1: GASTOS POR CATEGORÍA -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white fw-bold">📈 Gasto por
+                        Categoría</div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Categoría</th><th
+                                        class="text-end">Total
+                                        Gastado</th></tr></thead>
+                            <tbody>
+                                @for (gasto of gastosCategoria; track $index) {
+                                <tr><td>{{ gasto.categoria }}</td><td
+                                        class="text-end fw-bold">Q. {{
+                                        gasto.total_gastado | number:'1.2-2'
+                                        }}</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTE 2: HISTORIAL DE RECARGAS -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white fw-bold">💳 Historial de
+                        Recargas</div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Fecha y
+                                        Hora</th><th
+                                        class="text-end">Monto</th></tr></thead>
+                            <tbody>
+                                @for (recarga of historialRecargas; track
+                                $index) {
+                                <tr><td>{{ recarga.fecha_recarga }}</td><td
+                                        class="text-end fw-bold text-success">+
+                                        Q. {{ recarga.monto | number:'1.2-2'
+                                        }}</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTE 3: HISTORIAL DE PROYECTOS -->
+            <div class="col-12 mb-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold">📂 Historial de
+                        Proyectos Finalizados</div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Fecha
+                                        Inicio</th><th>Proyecto</th><th>Freelancer</th><th>Estado</th><th
+                                        class="text-end">Monto</th></tr></thead>
+                            <tbody>
+                                @for (proy of historialProyectos; track $index)
+                                {
+                                <tr>
+                                    <td>{{ proy.fecha_inicio }}</td>
+                                    <td class="fw-bold">{{ proy.proyecto }}</td>
+                                    <td>{{ proy.freelancer }}</td>
+                                    <td><span class="badge bg-primary">{{
+                                            proy.estado }}</span></td>
+                                    <td class="text-end fw-bold">Q. {{
+                                        proy.monto | number:'1.2-2' }}</td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIN SECCIÓN DE REPORTES -->
+
 </div>
 }
 
@@ -166,7 +286,6 @@
                     cuenta.</p>
                 <div class="input-group mb-3">
                     <span class="input-group-text">Q.</span>
-                    <!-- Aquí usamos el ngModel que importamos en el TS -->
                     <input type="number" class="form-control form-control-lg"
                         [(ngModel)]="montoRecarga" placeholder="0.00">
                 </div>
@@ -174,7 +293,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary"
                     data-bs-dismiss="modal">Cancelar</button>
-                <!-- Al hacer clic, procesa la recarga y cierra el modal -->
                 <button type="button" class="btn btn-primary px-4"
                     (click)="procesarRecarga()"
                     data-bs-dismiss="modal">Confirmar</button>
@@ -224,6 +342,35 @@
                 <button type="button" class="btn btn-warning fw-bold"
                     (click)="guardarEdicion()" data-bs-dismiss="modal">Guardar
                     Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Solicitar Nueva Categoría -->
+<div class="modal fade" id="modalSolicitarCategoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">💡 Solicitar Nueva Categoría</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info text-dark border-0 small">
+                    ¿No encuentras la categoría que necesitas para tu proyecto? Sugiérela y nuestro administrador la revisará.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre de la Categoría sugerida</label>
+                    <input type="text" class="form-control" [(ngModel)]="solicitudCat.nombre" placeholder="Ej. Inteligencia Artificial">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">¿Por qué la necesitas? (Descripción)</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="solicitudCat.descripcion" placeholder="Explica brevemente los proyectos que publicarías aquí..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary fw-bold" (click)="enviarSolicitudCategoria()" data-bs-dismiss="modal">🚀 Enviar Solicitud</button>
             </div>
         </div>
     </div>

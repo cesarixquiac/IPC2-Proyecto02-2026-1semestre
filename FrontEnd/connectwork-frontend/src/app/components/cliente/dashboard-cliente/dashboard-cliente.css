@@ -1,0 +1,16 @@
+@media print {
+    /* Ocultamos todo lo que no queremos en el PDF */
+    .no-print, .navbar, .modal {
+        display: none !important;
+    }
+    
+    /* Quitamos márgenes y sombras para que se vea como documento oficial */
+    body {
+        background-color: white;
+    }
+    .card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        page-break-inside: avoid; /* Evita que las tablas se corten a la mitad de la hoja */
+    }
+}

@@ -28,15 +28,22 @@ export class Auth {
   }
 
   guardarToken(token: string) {
-    localStorage.setItem('token', token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
   }
 
   obtenerToken(): string | null {
-    return localStorage.getItem('token');
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
   }
 
   cerrarSesion() {
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
   }
 
   obtenerDatosUsuario(): any {
@@ -54,4 +61,6 @@ export class Auth {
   estaAutenticado(): boolean {
     return !!this.obtenerToken();
   }
+
+  
 }

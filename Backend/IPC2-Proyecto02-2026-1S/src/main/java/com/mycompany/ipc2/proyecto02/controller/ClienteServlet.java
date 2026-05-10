@@ -101,6 +101,39 @@ public class ClienteServlet extends HttpServlet {
                 out.print("{\"error\": \"" + e.getMessage() + "\"}");
                 out.flush();
             }
+        }// REPORTE CLIENTE: Historial de Proyectos
+        else if (pathInfo != null && pathInfo.equals("/reportes/proyectos")) {
+            try {
+                int idCliente = Integer.parseInt(req.getParameter("idCliente"));
+                String inicio = req.getParameter("inicio");
+                String fin = req.getParameter("fin");
+                List<Map<String, Object>> reporte = clienteService.reporteHistorialProyectos(idCliente, inicio, fin);
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+            } catch (Exception e) { resp.setStatus(500); out.print("{\"error\": \"" + e.getMessage() + "\"}"); }
+            out.flush();
+        }
+        // REPORTE CLIENTE: Historial de Recargas
+        else if (pathInfo != null && pathInfo.equals("/reportes/recargas")) {
+            try {
+                int idCliente = Integer.parseInt(req.getParameter("idCliente"));
+                List<Map<String, Object>> reporte = clienteService.reporteHistorialRecargas(idCliente);
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+            } catch (Exception e) { resp.setStatus(500); out.print("{\"error\": \"" + e.getMessage() + "\"}"); }
+            out.flush();
+        }
+        // REPORTE CLIENTE: Gastos por Categoría
+        else if (pathInfo != null && pathInfo.equals("/reportes/gastos")) {
+            try {
+                int idCliente = Integer.parseInt(req.getParameter("idCliente"));
+                String inicio = req.getParameter("inicio");
+                String fin = req.getParameter("fin");
+                List<Map<String, Object>> reporte = clienteService.reporteGastoPorCategoria(idCliente, inicio, fin);
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.print(new Gson().toJson(reporte));
+            } catch (Exception e) { resp.setStatus(500); out.print("{\"error\": \"" + e.getMessage() + "\"}"); }
+            out.flush();
         }
         else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -137,14 +170,28 @@ public class ClienteServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
+         PrintWriter out = resp.getWriter();
+
         String pathInfo = req.getPathInfo();
 
-// Manejar null y variaciones de la ruta
+
        
         if (pathInfo != null && pathInfo.contains("/perfil")) {
             manejarCompletarPerfil(req, resp);
         } else if (pathInfo != null && pathInfo.contains("/recarga")) {
             manejarRecarga(req, resp);
+        }// SOLICITAR NUEVA CATEGORÍA
+        else if (pathInfo != null && pathInfo.contains("/solicitar-categoria")) {
+            try {
+                Map<String, Object> body = new Gson().fromJson(req.getReader(), Map.class);
+                int idUsuario = Double.valueOf(body.get("idUsuario").toString()).intValue();
+                String nombre = (String) body.get("nombre");
+                String descripcion = (String) body.get("descripcion");
+                
+                boolean exito = clienteService.solicitarCategoria(idUsuario, nombre, descripcion);
+                if (exito) out.print("{\"mensaje\": \"Solicitud enviada al Administrador\"}");
+                else { resp.setStatus(400); out.print("{\"error\": \"Error al enviar la solicitud\"}"); }
+            } catch (Exception e) { resp.setStatus(500); out.print("{\"error\": \"" + e.getMessage() + "\"}"); }
         } else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write("{\"error\": \"Ruta de cliente no encontrada.\"}");

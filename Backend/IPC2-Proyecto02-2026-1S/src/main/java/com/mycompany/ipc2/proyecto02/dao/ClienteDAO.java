@@ -12,4 +12,9 @@ public interface ClienteDAO extends CrudDAO<Cliente, Integer> {
     boolean recargarSaldo(Integer idCliente, Double monto);
     Cliente obtenerPerfil(Integer idCliente);
     List<Map<String, Object>> obtenerHistorialRecargas(int idCliente) throws Exception;
+    List<Map<String, Object>> reporteHistorialProyectos(int idCliente, String fechaInicio, String fechaFin) throws Exception;
+    List<Map<String, Object>> reporteHistorialRecargas(int idCliente) throws Exception;
+    List<Map<String, Object>> reporteGastoPorCategoria(int idCliente, String fechaInicio, String fechaFin) throws Exception;
+    boolean solicitarCategoria(int idUsuario, String nombre, String descripcion) throws Exception;
+    
 }

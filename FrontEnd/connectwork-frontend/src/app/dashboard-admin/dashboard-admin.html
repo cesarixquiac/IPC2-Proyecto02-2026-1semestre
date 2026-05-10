@@ -1,0 +1,537 @@
+<!-- NAVBAR DEL ADMIN -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-warning" href="#">ConnectWork -
+      ADMIN</a>
+    <div class="d-flex align-items-center gap-2">
+      <!-- Botones que cambian la vista -->
+      <button class="btn btn-sm fw-bold"
+        [ngClass]="vistaActual === 'inicio' ? 'btn-warning text-dark' : 'btn-outline-light'"
+        (click)="cambiarVista('inicio')">Inicio & Solicitudes</button>
+
+      <button class="btn btn-sm fw-bold"
+        [ngClass]="vistaActual === 'catalogo' ? 'btn-warning text-dark' : 'btn-outline-light'"
+        (click)="cambiarVista('catalogo')">Gestionar Catálogo</button>
+
+      <button class="btn btn-sm fw-bold"
+        [ngClass]="vistaActual === 'habilidades' ? 'btn-warning text-dark' : 'btn-outline-light'"
+        (click)="cambiarVista('habilidades')">Habilidades</button>
+
+      <button class="btn btn-sm fw-bold"
+        [ngClass]="vistaActual === 'reportes' ? 'btn-warning text-dark' : 'btn-outline-light'"
+        (click)="cambiarVista('reportes')">Reportes</button>
+
+      <button class="btn btn-danger btn-sm fw-bold ms-3"
+        (click)="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container pb-5">
+
+  <!-- ========================================== -->
+  <!-- VISTA 1: INICIO Y SOLICITUDES              -->
+  <!-- ========================================== -->
+  @if (vistaActual === 'inicio') {
+  <!-- SECCIÓN SUPERIOR: PANEL DE CONTROL RÁPIDO -->
+  <div class="row mb-4">
+    <!-- TARJETA DE COMISIÓN -->
+    <div class="col-md-6 col-lg-5">
+      <div
+        class="card shadow-sm border-0 border-start border-5 border-success h-100 bg-light">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-success mb-0">Comisión de la Plataforma</h5>
+            <span class="badge bg-success fs-6">{{ comisionActual }}%</span>
+          </div>
+
+          <p class="text-muted small mb-3">
+            Este porcentaje se descuenta automáticamente a los freelancers en
+            cada contrato completado.
+          </p>
+
+          <div class="input-group">
+            <input type="number" class="form-control"
+              placeholder="Nuevo porcentaje (Ej: 15)"
+              [(ngModel)]="nuevaComision">
+            <span class="input-group-text">%</span>
+            <button class="btn btn-success fw-bold"
+              (click)="guardarNuevaComision()">
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENSAJE DE BIENVENIDA -->
+    <div class="col-md-6 col-lg-7">
+      <div
+        class="alert alert-info h-100 d-flex flex-column justify-content-center border-0 shadow-sm">
+        <h5 class="fw-bold">¡Hola, Administrador!</h5>
+        <p class="mb-0">Desde aquí puedes gestionar el catálogo, aprobar
+          solicitudes y monitorear los ingresos de ConnectWork.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GESTIÓN DE SOLICITUDES -->
+  <div class="d-flex justify-content-between align-items-end mb-3 mt-4">
+    <div>
+      <h2 class="fw-bold mb-0">Gestión de Solicitudes</h2>
+      <p class="text-muted">Aprueba o rechaza las sugerencias de los
+        usuarios.</p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-5">
+    <div class="card-body p-0">
+      @if (solicitudes.length === 0) {
+      <div class="p-5 text-center text-muted fw-bold">
+        No hay solicitudes pendientes por revisar.
+      </div>
+      } @else {
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Solicitante</th>
+            <th>Tipo</th>
+            <th>Nombre Sugerido</th>
+            <th>Descripción</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sol of solicitudes; track sol.id_solicitud) {
+          <tr>
+            <td class="fw-bold text-muted">#{{ sol.id_solicitud }}</td>
+            <td>{{ sol.solicitante }}</td>
+            <td>
+              <span class="badge"
+                [ngClass]="{'bg-primary': sol.tipo_solicitud === 'CATEGORIA', 'bg-info text-dark': sol.tipo_solicitud === 'HABILIDAD'}">
+                {{ sol.tipo_solicitud }}
+              </span>
+            </td>
+            <td class="fw-bold">{{ sol.nombre_sugerido }}</td>
+            <td><small class="text-muted">{{ sol.descripcion ||
+                'Sin descripción' }}</small></td>
+            <td class="text-center">
+
+              <!-- BOTÓN CORREGIDO: Totalmente limpio, el TypeScript hace la magia -->
+              <button class="btn btn-success btn-sm fw-bold me-2"
+                (click)="abrirModalAceptar(sol)">
+                Aceptar
+              </button>
+
+              <button class="btn btn-outline-danger btn-sm fw-bold"
+                (click)="rechazarSolicitud(sol.id_solicitud)">
+                Rechazar
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- VISTA 2: GESTIÓN DE CATÁLOGO               -->
+  <!-- ========================================== -->
+  @if (vistaActual === 'catalogo') {
+  <div class="d-flex justify-content-between align-items-end mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-0">Gestión de Categorías</h2>
+      <p class="text-muted">Administra las áreas de trabajo disponibles en la
+        plataforma.</p>
+    </div>
+    <button class="btn btn-primary fw-bold mb-2 shadow-sm"
+      data-bs-toggle="modal" data-bs-target="#modalCategoria"
+      (click)="abrirModalCategoria()">
+      Nueva Categoría
+    </button>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-5">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Nombre de Categoría</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cat of categoriasAdmin; track $index) {
+          <tr>
+            <td class="text-muted fw-bold">#{{ cat.id_categoria }}</td>
+            <td class="fw-bold">{{ cat.nombre }}</td>
+            <td><small class="text-muted">{{ cat.descripcion ||
+                'Sin descripción' }}</small></td>
+            <td>
+              <span class="badge"
+                [ngClass]="cat.estado === 'ACTIVO' ? 'bg-success' : 'bg-danger'">
+                {{ cat.estado }}
+              </span>
+            </td>
+            <td class="text-center">
+              <!-- Botón Editar -->
+              <button class="btn btn-sm btn-outline-primary fw-bold me-2"
+                data-bs-toggle="modal" data-bs-target="#modalCategoria"
+                (click)="abrirModalCategoria(cat)">
+                Editar
+              </button>
+              <!-- Botón Activar/Desactivar -->
+              <button class="btn btn-sm fw-bold"
+                [ngClass]="cat.estado === 'ACTIVO' ? 'btn-outline-danger' : 'btn-outline-success'"
+                (click)="toggleEstadoCategoria(cat)">
+                {{ cat.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- VISTA 4: GESTIÓN DE HABILIDADES            -->
+  <!-- ========================================== -->
+  @if (vistaActual === 'habilidades') {
+  <div class="d-flex justify-content-between align-items-end mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-0">Gestión de Habilidades</h2>
+      <p class="text-muted">Administra las etiquetas de conocimiento asociadas a
+        cada categoría.</p>
+    </div>
+    <button class="btn btn-primary fw-bold mb-2 shadow-sm"
+      data-bs-toggle="modal" data-bs-target="#modalHabilidad"
+      (click)="abrirModalHabilidad()">
+      Nueva Habilidad
+    </button>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-5">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Habilidad</th>
+            <th>Categoría Padre</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (hab of habilidadesAdmin; track $index) {
+          <tr>
+            <td class="text-muted fw-bold">#{{ hab.id_habilidad }}</td>
+            <td class="fw-bold">{{ hab.nombre }}</td>
+            <td><span class="badge bg-secondary">{{ hab.nombre_categoria
+                }}</span></td>
+            <td>
+              <span class="badge"
+                [ngClass]="hab.estado === 'ACTIVO' ? 'bg-success' : 'bg-danger'">
+                {{ hab.estado }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary fw-bold me-2"
+                data-bs-toggle="modal" data-bs-target="#modalHabilidad"
+                (click)="abrirModalHabilidad(hab)"> Editar</button>
+              <button class="btn btn-sm fw-bold"
+                [ngClass]="hab.estado === 'ACTIVO' ? 'btn-outline-danger' : 'btn-outline-success'"
+                (click)="toggleEstadoHabilidad(hab)">
+                {{ hab.estado === 'ACTIVO' ? ' Desactivar' : ' Activar' }}
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- VISTA 3: REPORTES                          -->
+  <!-- ========================================== -->
+  @if (vistaActual === 'reportes') {
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-0">Reportes del Sistema</h2>
+      <p class="text-muted">Analiza el rendimiento y los ingresos de
+        ConnectWork.</p>
+    </div>
+    <button class="btn btn-outline-dark fw-bold d-print-none"
+      (click)="imprimirReporte()">Imprimir Reportes</button>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4 bg-light d-print-none">
+    <div class="card-body">
+      <div class="row align-items-end g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Fecha Inicio</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaInicio">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Fecha Fin</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaFin">
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-dark w-100 fw-bold"
+            (click)="generarReportes()">Generar Reportes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm border-0 bg-primary text-white">
+        <div class="card-body text-center">
+          <h6 class="text-uppercase fw-bold opacity-75">Ingresos Plataforma</h6>
+          <h1 class="display-5 fw-bold">Q. {{ datosIngresos?.total_comisiones |
+            number:'1.2-2' }}</h1>
+          <p class="mb-0 fs-5">{{ datosIngresos?.cantidad_contratos }} Contratos
+            Finalizados</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8 mb-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-header bg-white fw-bold">Top 5 Categorías con más
+          Actividad</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Categoría</th>
+                <th class="text-center">Contratos</th>
+                <th class="text-end">Comisiones (Q.)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cat of datosTopCategorias; track $index) {
+              <tr>
+                <td>{{ cat.categoria }}</td>
+                <td class="text-center">{{ cat.cantidad_contratos }}</td>
+                <td class="text-end fw-bold">Q. {{ cat.comisiones_generadas |
+                  number:'1.2-2' }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-bold">Top 5 Freelancers con más
+          Ingresos</div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Freelancer</th>
+                <th class="text-center">Contratos</th>
+                <th class="text-end">Total Generado</th>
+                <th class="text-end text-success">Comisión Plataforma</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (free of datosTopFreelancers; track $index) {
+              <tr>
+                <td class="fw-bold">{{ free.nombre_completo }}</td>
+                <td class="text-center">{{ free.cantidad_contratos }}</td>
+                <td class="text-end">Q. {{ free.total_generado | number:'1.2-2'
+                  }}</td>
+                <td class="text-end fw-bold text-success">Q. {{
+                  free.comision_plataforma | number:'1.2-2' }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-bold">Historial de Porcentajes de
+          Comisión</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Porcentaje</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (hist of datosHistorialComisiones; track $index) {
+              <tr>
+                <td class="fw-bold">{{ hist.porcentaje }}%</td>
+                <td>{{ hist.fecha_inicio }}</td>
+                <td>{{ hist.fecha_fin }}</td>
+                <td>
+                  <span class="badge"
+                    [ngClass]="hist.fecha_fin === 'Vigente' ? 'bg-success' : 'bg-secondary'">
+                    {{ hist.fecha_fin === 'Vigente' ? 'ACTIVO' : 'EXPIRADO' }}
+                  </span>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+<!-- ========================================== -->
+<!-- MODALES (Fuera de los @if para evitar bugs)-->
+<!-- ========================================== -->
+
+<!-- MODAL PARA CREAR/EDITAR CATEGORÍA -->
+<div class="modal fade" id="modalCategoria" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header text-white"
+        [ngClass]="isEditandoCategoria ? 'bg-primary' : 'bg-success'">
+        <h5 class="modal-title fw-bold">
+          {{ isEditandoCategoria ? 'Editar Categoría' : 'Nueva Categoría' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+          data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Nombre de la Categoría <span
+              class="text-danger">*</span></label>
+          <input type="text" class="form-control"
+            placeholder="Ej. Arquitectura y Diseño"
+            [(ngModel)]="categoriaForm.nombre">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Descripción</label>
+          <textarea class="form-control" rows="3"
+            placeholder="Breve explicación de los servicios..."
+            [(ngModel)]="categoriaForm.descripcion"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn fw-bold"
+          [ngClass]="isEditandoCategoria ? 'btn-primary' : 'btn-success'"
+          (click)="guardarCategoria()">
+          {{ isEditandoCategoria ? 'Actualizar Cambios' : 'Guardar Categoría' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PARA ACEPTAR HABILIDAD (Requiere Categoría) -->
+<div class="modal fade" id="modalAceptarHabilidad" tabindex="-1"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold">Asignar Categoría a la Habilidad</h5>
+        <button type="button" class="btn-close btn-close-white"
+          data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" *ngIf="solicitudSeleccionada">
+        <div class="alert alert-info py-2">
+          Estás a punto de aprobar la habilidad: <br>
+          <strong class="fs-5">{{ solicitudSeleccionada.nombre_sugerido
+            }}</strong>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Selecciona a qué categoría
+            pertenece:</label>
+          <select class="form-select" [(ngModel)]="idCategoriaDestino">
+            <option [ngValue]="null" disabled>-- Elige una categoría --</option>
+            <!-- Usamos $index como identificador único infalible -->
+            @for (cat of categorias; track $index) {
+            <!-- Le enviamos la categoría entera o probamos los nombres más comunes -->
+            <option [ngValue]="cat.id_categoria || cat.idCategoria || cat.id">{{
+              cat.nombre || cat.nombreCategoria || cat }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success fw-bold"
+          (click)="confirmarAceptacionHabilidad()">
+          Confirmar y Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PARA CREAR/EDITAR HABILIDAD -->
+<div class="modal fade" id="modalHabilidad" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header text-white"
+        [ngClass]="isEditandoHabilidad ? 'bg-primary' : 'bg-success'">
+        <h5 class="modal-title fw-bold">
+          {{ isEditandoHabilidad ? ' Editar Habilidad' : ' Nueva Habilidad' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+          data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Nombre de la Habilidad <span
+              class="text-danger">*</span></label>
+          <input type="text" class="form-control"
+            placeholder="Ej. Photoshop, Java, SEO..."
+            [(ngModel)]="habilidadForm.nombre">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Categoría Padre <span
+              class="text-danger">*</span></label>
+          <select class="form-select" [(ngModel)]="habilidadForm.idCategoria">
+            <option [ngValue]="null" disabled>-- Selecciona una categoría
+              --</option>
+            @for (cat of categoriasAdmin; track $index) {
+            <option [ngValue]="cat.id_categoria">{{ cat.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn fw-bold"
+          [ngClass]="isEditandoHabilidad ? 'btn-primary' : 'btn-success'"
+          (click)="guardarHabilidad()">
+          {{ isEditandoHabilidad ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
